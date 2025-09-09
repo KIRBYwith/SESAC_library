@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 - KIRBY 도서관</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 로그인 폼 관련 스타일 */
+        .login-form {
+            background-color: white;
+            padding: 40px;
+            margin: 50px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 430px;  /* 기존 300px에서 400px로 확대 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .login-form label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .login-form input {
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .button-row {
+            display: flex;           /* 버튼들을 가로로 배치 */
+            gap: 5px;                /* 버튼 사이 간격 */
+            flex-wrap: nowrap;       /* 한 줄 유지 */
+        }
+
+        .login-form button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
+        }
+
+        .login-btn {
+            background-color: #ff69b4;
+            color: white;
+        }
+
+        .find-btn {
+            background-color: #eee;
+            color: #333;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>KIRBY 도서관</h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="login.html">로그인</a>
+        <a href="signup.html">회원가입</a>
+        <a href="board.html">게시판</a>
+    </nav>
+</header>
+
+<div class="login-form">
+    <h2>로그인</h2>
+    <form id="loginForm">
+        <label for="email">아이디</label>
+        <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+
+        <div class="button-row">
+            <button type="submit" class="login-btn">로그인</button>
+            <div>
+                <button type="button" class="find-btn" onclick="alert('아이디 찾기')">아이디 찾기</button>
+                <button type="button" class="find-btn" onclick="alert('비밀번호 찾기')">비밀번호 찾기</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<footer>
+    © 2025 KIRBY 도서관
+</footer>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('로그인 기능은 프론트엔드 샘플용입니다.');
+    });
+</script>
+</body>
+</html>

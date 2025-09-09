@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIRBY 도서관 - 회원가입</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef5 0%, #fff8e1 50%, #f3e5f5 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 헤더 */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 30px rgba(255, 192, 203, 0.2);
+            padding: 1.5rem 0;
+            border-bottom: 3px solid #ffb3d9;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            background: linear-gradient(45deg, #ff99cc, #ffcc99);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #d63384;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+            color: white;
+        }
+
+        /* 메인 컨테이너 */
+        .main-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .signup-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 20px 50px rgba(255, 179, 217, 0.3);
+            border: 2px solid rgba(255, 179, 217, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ffb3d9, #ffeb99);
+        }
+
+        .page-title {
+            text-align: center;
+            color: #d63384;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* 폼 스타일 */
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: #d63384;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(255, 179, 217, 0.3);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #ffb3d9;
+            background: white;
+            box-shadow: 0 5px 15px rgba(255, 179, 217, 0.2);
+        }
+
+        .form-select {
+            width: 120px;
+            padding: 1rem;
+            border: 2px solid rgba(255, 179, 217, 0.3);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+            color: #d63384;
+            border: 2px solid rgba(255, 179, 217, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 179, 217, 0.4);
+            background: linear-gradient(45deg, #ff99cc, #ffe066);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 179, 217, 0.1);
+            color: #d63384;
+            border: 2px solid rgba(255, 179, 217, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 179, 217, 0.2);
+        }
+
+        .btn-small {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+
+        /* 휴대폰 번호 */
+        .phone-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .phone-group input {
+            flex: 1;
+            text-align: center;
+        }
+
+        .phone-dash {
+            color: #d63384;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* 주소 */
+        .address-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .address-group input {
+            flex: 1;
+        }
+
+        /* 체크박스 */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            color: #666;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* 안내 문구 */
+        .notice {
+            background: rgba(255, 235, 179, 0.3);
+            border: 2px solid rgba(255, 235, 179, 0.5);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .notice h4 {
+            color: #d63384;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .notice ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .notice li {
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .notice li::before {
+            content: '•';
+            color: #ffb3d9;
+            font-size: 1.2rem;
+            position: absolute;
+            left: 0;
+        }
+
+        /* 제출 버튼 */
+        .submit-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid rgba(255, 179, 217, 0.2);
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #d63384, #ff6b9d);
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            padding: 1.2rem 4rem;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(214, 51, 132, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(214, 51, 132, 0.4);
+            background: linear-gradient(45deg, #c2185b, #e91e63);
+        }
+
+        /* 메시지 */
+        .message {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .message.success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .message.error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .message.info {
+            background: rgba(255, 235, 179, 0.3);
+            color: #856404;
+            border: 1px solid rgba(255, 235, 179, 0.5);
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 1rem;
+            }
+
+            .signup-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .form-row .form-group {
+                margin-bottom: 1.8rem;
+            }
+
+            .phone-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .phone-dash {
+                display: none;
+            }
+
+            .address-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <a href="index.html" class="logo">KIRBY 도서관</a>
+        <nav class="nav-links">
+            <a href="index.html">홈</a>
+        </nav>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="signup-card">
+        <h1 class="page-title">회원가입</h1>
+        <p class="page-subtitle">KIRBY 도서관에 오신 것을 환영합니다!</p>
+
+        <form id="signupForm">
+            <!-- 아이디 -->
+            <div class="form-group">
+                <label for="userId" class="form-label">아이디<span class="required">*</span></label>
+                <div class="form-row">
+                    <input type="text" id="userId" name="userId" class="form-input"
+                           placeholder="5~15자(영문, 숫자)" maxlength="15" required>
+                    <button type="button" class="btn btn-primary btn-small" onclick="checkDuplicateId()">중복확인</button>
+                </div>
+                <div id="userIdMessage" class="message" style="display: none;"></div>
+            </div>
+
+            <!-- 비밀번호 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password" class="form-label">비밀번호<span class="required">*</span></label>
+                    <input type="password" id="password" name="password" class="form-input"
+                           placeholder="8~15자(영문, 숫자, 특수문자 각 1개 이상 조합)"
+                           maxlength="15" required>
+                    <div id="passwordMessage" class="message" style="display: none;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="passwordConfirm" class="form-label">비밀번호 확인<span class="required">*</span></label>
+                    <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-input"
+                           placeholder="비밀번호를 다시 입력하세요" maxlength="15" required>
+                    <div id="passwordConfirmMessage" class="message" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- 이름 -->
+            <div class="form-group">
+                <label for="name" class="form-label">이름<span class="required">*</span></label>
+                <input type="text" id="name" name="name" class="form-input"
+                       placeholder="실명을 입력하세요" required>
+            </div>
+
+            <!-- 생년월일 -->
+            <div class="form-group">
+                <label for="birthDate" class="form-label">생년월일<span class="required">*</span></label>
+                <input type="date" id="birthDate" name="birthDate" class="form-input" required>
+            </div>
+
+            <!-- 휴대폰 번호 -->
+            <div class="form-group">
+                <label class="form-label">휴대폰번호<span class="required">*</span></label>
+                <div class="phone-group">
+                    <select id="phonePrefix" name="phonePrefix" class="form-select" required>
+                        <option value="010">010</option>
+                        <option value="011">011</option>
+                        <option value="016">016</option>
+                        <option value="017">017</option>
+                        <option value="018">018</option>
+                        <option value="019">019</option>
+                    </select>
+                    <span class="phone-dash">-</span>
+                    <input type="text" id="phoneMiddle" name="phoneMiddle" class="form-input"
+                           placeholder="0000" maxlength="4" pattern="[0-9]{4}" required>
+                    <span class="phone-dash">-</span>
+                    <input type="text" id="phoneLast" name="phoneLast" class="form-input"
+                           placeholder="0000" maxlength="4" pattern="[0-9]{4}" required>
+                </div>
+                <div class="message info" style="display: block;">
+                    * 휴대폰번호는 예약서 도착안내 문자발송 등에 이용됩니다. (필수)
+                </div>
+            </div>
+
+            <!-- 이메일 -->
+            <div class="form-group">
+                <label class="form-label">이메일 주소</label>
+                <div class="form-row">
+                    <input type="text" id="emailId" name="emailId" class="form-input"
+                           placeholder="이메일 아이디">
+                    <select id="emailDomain" name="emailDomain" class="form-select" style="width: 150px;">
+                        <option value="">선택</option>
+                        <option value="gmail.com">gmail.com</option>
+                        <option value="naver.com">naver.com</option>
+                        <option value="daum.net">daum.net</option>
+                        <option value="kakao.com">kakao.com</option>
+                        <option value="yahoo.com">yahoo.com</option>
+                        <option value="custom">직접입력</option>
+                    </select>
+                    <input type="text" id="customDomain" name="customDomain" class="form-input"
+                           placeholder="직접입력" style="display: none;">
+                </div>
+                <div class="message info" style="display: block;">
+                    * 이메일 주소는 회원정보 재등록(4년 주기) 알림에 이용됩니다.
+                </div>
+            </div>
+
+            <!-- 주소 -->
+            <div class="form-group">
+                <label class="form-label">기본주소<span class="required">*</span></label>
+                <div class="address-group">
+                    <input type="text" id="zipcode" name="zipcode" class="form-input"
+                           placeholder="우편번호" readonly required>
+                    <button type="button" class="btn btn-secondary" onclick="searchAddress()">우편번호검색</button>
+                </div>
+                <input type="text" id="basicAddress" name="basicAddress" class="form-input"
+                       placeholder="기본주소" readonly required style="margin-bottom: 1rem;">
+            </div>
+
+            <div class="form-group">
+                <label for="detailAddress" class="form-label">상세주소<span class="required">*</span></label>
+                <input type="text" id="detailAddress" name="detailAddress" class="form-input"
+                       placeholder="상세주소(동, 호수 등)" required>
+            </div>
+
+            <!-- 수신 동의 -->
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="smsConsent" name="smsConsent" class="checkbox">
+                    <label for="smsConsent" class="checkbox-label">문자 수신동의</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="emailConsent" name="emailConsent" class="checkbox">
+                    <label for="emailConsent" class="checkbox-label">이메일 수신동의</label>
+                </div>
+            </div>
+
+            <!-- 안내 문구 -->
+            <div class="notice">
+                <h4>🔒 개인정보 수집 및 이용 안내</h4>
+                <ul>
+                    <li><strong>목적:</strong> 도서관 회원 관리, 도서 대출 서비스, 프로그램 안내</li>
+                    <li><strong>항목:</strong> 이름, 생년월일, 연락처, 이메일, 주소</li>
+                    <li><strong>보유기간:</strong> 회원 탈퇴 시까지 (관련 법령에 따른 예외 적용)</li>
+                    <li><strong>선택사항:</strong> SMS/이메일 수신동의 (거부 시에도 회원가입 가능)</li>
+                </ul>
+                <br>
+                <p style="color: #d63384; font-weight: 600;">
+                    📋 도서서비스(대출/반납, 예약, 연체알림)와 관련된 안내는 수신동의 여부와 관계없이 발송됩니다.<br>
+                    📋 신청하신 프로그램(신청완료, 취소 등)과 관련된 안내는 수신동의 여부와 관계없이 발송됩니다.
+                </p>
+            </div>
+
+            <!-- 필수 동의 -->
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="requiredConsent" name="requiredConsent" class="checkbox" required>
+                    <label for="requiredConsent" class="checkbox-label">
+                        <strong style="color: #d63384;">개인정보 수집 및 이용에 동의합니다. (필수)</strong>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 제출 버튼 -->
+            <div class="submit-section">
+                <button type="submit" class="submit-btn">
+                    ✓ 가입하기
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 아이디 중복 확인 상태
+    let isIdChecked = false;
+    let isIdAvailable = false;
+
+    // 아이디 중복 확인
+    function checkDuplicateId() {
+        const userId = document.getElementById('userId').value.trim();
+        const messageDiv = document.getElementById('userIdMessage');
+
+        if (!userId) {
+            showMessage('userIdMessage', '아이디를 입력하세요.', 'error');
+            return;
+        }
+
+        // 아이디 형식 검증 (5~15자, 영문+숫자)
+        const idRegex = /^[a-zA-Z0-9]{5,15}$/;
+        if (!idRegex.test(userId)) {
+            showMessage('userIdMessage', '아이디는 5~15자의 영문과 숫자만 사용 가능합니다.', 'error');
+            return;
+        }
+
+        // 실제로는 서버에 요청을 보내야 하지만, 여기서는 시뮬레이션
+        setTimeout(() => {
+            // 랜덤하게 사용가능/불가능 결정 (실제로는 DB 조회 결과)
+            const isAvailable = Math.random() > 0.3; // 70% 확률로 사용 가능
+
+            if (isAvailable) {
+                showMessage('userIdMessage', '사용 가능한 아이디입니다.', 'success');
+                isIdChecked = true;
+                isIdAvailable = true;
+            } else {
+                showMessage('userIdMessage', '이미 사용 중인 아이디입니다.', 'error');
+                isIdChecked = true;
+                isIdAvailable = false;
+            }
+        }, 500);
+    }
+
+    // 비밀번호 유효성 검사
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const messageDiv = document.getElementById('passwordMessage');
+
+        if (password.length === 0) {
+            messageDiv.style.display = 'none';
+            return;
+        }
+
+        // 8~15자, 영문+숫자+특수문자 각 1개 이상
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        const isValidLength = password.length >= 8 && password.length <= 15;
+
+        if (!isValidLength) {
+            showMessage('passwordMessage', '비밀번호는 8~15자여야 합니다.', 'error');
+        } else if (!hasLetter || !hasNumber || !hasSpecial) {
+            showMessage('passwordMessage', '영문, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.', 'error');
+        } else {
+            showMessage('passwordMessage', '사용 가능한 비밀번호입니다.', 'success');
+        }
+
+        // 비밀번호 확인도 다시 체크
+        checkPasswordConfirm();
+    });
+
+    // 비밀번호 확인
+    function checkPasswordConfirm() {
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+        if (passwordConfirm.length === 0) {
+            document.getElementById('passwordConfirmMessage').style.display = 'none';
+            return;
+        }
+
+        if (password === passwordConfirm) {
+            showMessage('passwordConfirmMessage', '비밀번호가 일치합니다.', 'success');
+        } else {
+            showMessage('passwordConfirmMessage', '비밀번호가 일치하지 않습니다.', 'error');
+        }
+    }
+
+    document.getElementById('passwordConfirm').addEventListener('input', checkPasswordConfirm);
+
+    // 아이디 입력 시 중복확인 상태 초기화
+    document.getElementById('userId').addEventListener('input', function() {
+        isIdChecked = false;
+        isIdAvailable = false;
+        document.getElementById('userIdMessage').style.display = 'none';
+    });
+
+    // 이메일 도메인 선택
+    document.getElementById('emailDomain').addEventListener('change', function() {
+        const customDomain = document.getElementById('customDomain');
+        if (this.value === 'custom') {
+            customDomain.style.display = 'block';
+            customDomain.required = true;
+        } else {
+            customDomain.style.display = 'none';
+            customDomain.required = false;
+            customDomain.value = '';
+        }
+    });
+
+    // 우편번호 검색 (실제로는 다음 API 등을 사용)
+    function searchAddress() {
+        alert('우편번호 검색 API 연동 예정입니다.\n현재는 테스트용으로 샘플 주소를 입력합니다.');
+
+        // 테스트용 샘플 주소
+        document.getElementById('zipcode').value = '06234';
+        document.getElementById('basicAddress').value = '서울특별시 강남구 테헤란로 123';
+        document.getElementById('detailAddress').focus();
+    }
+
+    // 휴대폰 번호 입력 제한 (숫자만)
+    document.getElementById('phoneMiddle').addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    document.getElementById('phoneLast').addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    // 메시지 표시 함수
+    function showMessage(elementId, message, type) {
+        const messageDiv = document.getElementById(elementId);
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+    }
+
+    // 폼 제출
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // 필수 입력 검증
+        if (!isIdChecked || !isIdAvailable) {
+            alert('아이디 중복확인을 해주세요.');
+            document.getElementById('userId').focus();
+            return;
+        }
+
+        // 비밀번호 일치 확인
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('passwordConfirm').value;
+        if (password !== passwordConfirm) {
+            alert('비밀번호가 일치하지 않습니다.');
+            document.getElementById('passwordConfirm').focus();
+            return;
+        }
+
+        // 필수 동의 확인
+        if (!document.getElementById('requiredConsent').checked) {
+            alert('개인정보 수집 및 이용에 동의해주세요.');
+            return;
+        }
+
+        // 성공 메시지
+        alert('회원가입이 완료되었습니다!\n로그인 페이지로 이동합니다.');
+
+        // 실제로는 서버로 데이터 전송 후 로그인 페이지로 리다이렉트
+        // window.location.href = 'login.html';
+    });
+</script>
+</body>
+</html>

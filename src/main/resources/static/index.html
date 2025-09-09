@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIRBY 도서관</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header>
+    <h1>KIRBY 도서관</h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="login.html" id="loginBtn">로그인</a>
+        <a href="signup.html" id="signupBtn">회원가입</a>
+        <a href="board.html">게시판</a>
+    </nav>
+</header>
+
+<!-- 슬라이드 배너 -->
+<div class="banner-container">
+    <div class="banner-slides">
+        <div class="banner-slide active">
+            <div class="banner-content">
+                <h3>새로운 도서가 도착했습니다!</h3>
+                <p>최신 베스트셀러와 추천 도서들을 만나보세요</p>
+            </div>
+        </div>
+        <div class="banner-slide">
+            <div class="banner-content">
+                <h3>디지털 도서관 서비스</h3>
+                <p>언제 어디서나 온라인으로 도서를 이용하세요</p>
+            </div>
+        </div>
+        <div class="banner-slide">
+            <div class="banner-content">
+                <h3>독서 프로그램 운영 중</h3>
+                <p>다양한 독서 활동에 참여하고 혜택을 받아보세요</p>
+            </div>
+        </div>
+    </div>
+    <button class="banner-nav prev" onclick="prevSlide()">‹</button>
+    <button class="banner-nav next" onclick="nextSlide()">›</button>
+    <div class="banner-indicators">
+        <span class="indicator active" onclick="currentSlide(1)"></span>
+        <span class="indicator" onclick="currentSlide(2)"></span>
+        <span class="indicator" onclick="currentSlide(3)"></span>
+    </div>
+</div>
+
+<div class="search-box">
+    <input type="text" id="searchInput" placeholder="도서명, 저자, 키워드 검색">
+    <button id="searchBtn">검색</button>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>📢 도서관 공지사항</h2>
+        <ul>
+            <li>[공지] 신착 도서 입고 안내 - 2025.09.09</li>
+            <li>[공지] 도서관 시설 개선 공사 안내</li>
+            <li>[이벤트] 여름 독서 챌린지 진행 중</li>
+            <li>[안내] 휴관일 변경 안내</li>
+            <li>[공지] 모바일 앱 서비스 오픈</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🔗 빠른 메뉴</h2>
+        <div class="quick-menu">
+            <a href="#reservation" class="menu-item">
+                <div class="menu-icon">📚</div>
+                <div class="menu-text">도서예약</div>
+            </a>
+            <a href="#extend" class="menu-item">
+                <div class="menu-icon">🔄</div>
+                <div class="menu-text">대출연장</div>
+            </a>
+            <a href="#recommend" class="menu-item">
+                <div class="menu-icon">⭐</div>
+                <div class="menu-text">추천도서</div>
+            </a>
+            <a href="#study" class="menu-item">
+                <div class="menu-icon">🏫</div>
+                <div class="menu-text">열람실예약</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 도서관 현황</h2>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number pulse">125,847</span>
+                <div class="stat-label">보유 도서</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number pulse">3,421</span>
+                <div class="stat-label">등록 회원</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number pulse">892</span>
+                <div class="stat-label">오늘 방문자</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number pulse">45</span>
+                <div class="stat-label">현재 이용자</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📖 이달의 추천 도서</h2>
+        <ul>
+            <li class="book-item">🏆 "당신의 선택" - 김영하 저</li>
+            <li class="book-item">🔥 "미드나이트 라이브러리" - 맷 헤이그 저</li>
+            <li class="book-item">✨ "코스모스" - 칼 세이건 저</li>
+            <li class="book-item">💝 "아몬드" - 손원평 저</li>
+            <li class="book-item">🌟 "사피엔스" - 유발 하라리 저</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🕒 이용 안내</h2>
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">운영시간:</span>
+                <span class="info-value">평일 09:00 - 22:00</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">주말:</span>
+                <span class="info-value">09:00 - 18:00</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">휴관일:</span>
+                <span class="info-value">매월 첫째, 셋째 월요일</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">대출기간:</span>
+                <span class="info-value">일반도서 14일</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">연락처:</span>
+                <span class="info-value">02-1234-5678</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🎯 인기 검색어</h2>
+        <ul>
+            <li class="search-rank rank-1">1. 미드나이트 라이브러리</li>
+            <li class="search-rank rank-2">2. 원피스</li>
+            <li class="search-rank rank-3">3. 파이썬 프로그래밍</li>
+            <li class="search-rank">4. 아몬드</li>
+            <li class="search-rank">5. 데미안</li>
+        </ul>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-content">
+        <p>© 2025 KIRBY 도서관 | 주소: 서울시 강남구 도서관로 123 | 전화: 02-1234-5678</p>
+        <p>개인정보처리방침 | 이용약관 | 찾아오시는 길</p>
+    </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>

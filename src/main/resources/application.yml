@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: SESAC_Library
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update   # 실제 운영이면 validate 권장, 토이/실습은 update로 편하게
+    properties:
+      hibernate.format_sql: true
+
+  profiles:     # 프로필
+    active:
+      local
+    group:
+      local: local
+      prod: prod
+      secure: secure
