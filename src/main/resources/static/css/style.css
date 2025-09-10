@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* CSS 리셋 및 기본 설정 */
 * {
     margin: 0;
@@ -659,3 +660,7 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+=======
+body { min-height: 100vh; }
+.card { border-radius: 1rem; }
+>>>>>>> temp_frontend
