@@ -387,6 +387,9 @@
             }
         }
     </style>
+    <script>
+        const isLoggedIn = false; // ← 여기를 true로 바꾸면 로그인 상태
+    </script>
 </head>
 <body>
 <header>
@@ -402,9 +405,9 @@
 
         <div class="board-info">
             <span class="total-posts">Total 1729 / 4개 페이지</span>
-<!--            <a href="writepage.html">-->
-<!--                <button class="write-btn">글쓰기</button>-->
-<!--            </a>-->
+            <!--            <a href="writepage.html">-->
+            <!--                <button class="write-btn">글쓰기</button>-->
+            <!--            </a>-->
         </div>
 
         <div class="board-controls">
@@ -417,8 +420,13 @@
                 <button class="search-btn" onclick="searchPosts()">검색</button>
             </div>
         </div>
-        <div style="display: flex; justify-content: flex-end;">
-            <a href="writepage.html">
+        <!--        <div style="display: flex; justify-content: flex-end;">-->
+        <!--            <a href="writepage.html">-->
+        <!--                <button class="write-btn">글쓰기</button>-->
+        <!--            </a>-->
+        <!--        </div>-->
+        <div style="display: flex; justify-content: flex-end;" id="writeBtnWrapper">
+            <a href="writepage.html" id="writeBtn">
                 <button class="write-btn">글쓰기</button>
             </a>
         </div>
@@ -436,39 +444,26 @@
             <tbody>
             <tr>
                 <td class="number">7</td>
-                <td class="title"><a href="#" onclick="viewPost(7)">테스트1</a></td>
+                <td class="title"><a href="boardView.html?id=7">테스트1</a></td>
                 <td class="author">최고관리자</td>
                 <td class="date">10-15</td>
                 <td class="views">3</td>
             </tr>
             <tr>
                 <td class="number">6</td>
-                <td class="title"><a href="#" onclick="viewPost(6)">테스트1</a></td>
+                <td class="title"><a href="boardView.html?id=6">테스트1</a></td>
                 <td class="author">최고관리자</td>
                 <td class="date">10-15</td>
                 <td class="views">3</td>
             </tr>
             <tr>
                 <td class="number">5</td>
-                <td class="title"><a href="#" onclick="viewPost(5)">테스트1</a></td>
+                <td class="title"><a href="boardView.html?id=5">테스트1</a></td>
                 <td class="author">최고관리자</td>
                 <td class="date">10-15</td>
                 <td class="views">3</td>
             </tr>
-            <tr>
-                <td class="number">4</td>
-                <td class="title"><a href="#" onclick="viewPost(4)">테스트1</a></td>
-                <td class="author">최고관리자</td>
-                <td class="date">10-15</td>
-                <td class="views">3</td>
-            </tr>
-            <tr>
-                <td class="number">3</td>
-                <td class="title"><a href="#" onclick="viewPost(3)">테스트1</a></td>
-                <td class="author">최고관리자</td>
-                <td class="date">10-15</td>
-                <td class="views">3</td>
-            </tr>
+
             </tbody>
         </table>
 
@@ -550,5 +545,18 @@
         }
     });
 </script>
+<script>
+    // 로그인 여부에 따라 글쓰기 버튼 숨김
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const writeBtn = document.getElementById('writeBtnWrapper');
+
+        if (writeBtn) {
+            writeBtn.style.display = isLoggedIn ? 'flex' : 'none';
+        }
+    });
+
+</script>
+
 </body>
 </html>

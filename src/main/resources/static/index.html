@@ -8,12 +8,15 @@
 </head>
 <body>
 <header>
-    <h1>KIRBY 도서관</h1>
+    <h1>📖KIRBY 도서관📖</h1>
     <nav>
         <a href="index.html">홈</a>
         <a href="login.html" id="loginBtn">로그인</a>
         <a href="signup.html" id="signupBtn">회원가입</a>
+        <a href="books.html">도서목록</a>
         <a href="board.html">게시판</a>
+        <a href="mypage.html" id="mypageBtn" style="display:none;">마이페이지</a>
+
     </nav>
 </header>
 
@@ -24,6 +27,12 @@
             <div class="banner-content">
                 <h3>새로운 도서가 도착했습니다!</h3>
                 <p>최신 베스트셀러와 추천 도서들을 만나보세요</p>
+                <div class="banner-images">
+                    <img src="../img/1.jpg" alt="신착 도서 1">
+                    <img src="../img/2.jpg" alt="신착 도서 2">
+                    <img src="../img/3.jpg" alt="신착 도서 3">
+                    <img src="../img/4.jpg" alt="신착 도서 4">
+                </div>
             </div>
         </div>
         <div class="banner-slide">
@@ -165,6 +174,38 @@
     </div>
 </footer>
 
-<script src="main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+
+        if (isLoggedIn) {
+            // 로그인 상태면 로그인 → 로그아웃으로 바꿈
+            loginBtn.textContent = '로그아웃';
+            loginBtn.href = '#';
+            loginBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                localStorage.removeItem('isLoggedIn');
+                alert('로그아웃 되었습니다.');
+                window.location.reload();
+            });
+
+            // 회원가입 버튼 숨기기 (선택)
+            if (signupBtn) signupBtn.style.display = 'none';
+
+            // 마이페이지 버튼 보이기
+            if (mypageBtn) mypageBtn.style.display = 'inline-block';
+        } else {
+            // 로그인 상태가 아니면 마이페이지 버튼 숨기기
+            if (mypageBtn) mypageBtn.style.display = 'none';
+
+        }
+    });
+</script>
+
+
+<script src="index.html"></script>
 </body>
 </html>

@@ -81,22 +81,6 @@ nav a:hover::before {
 }
 
 /* 슬라이드 배너 */
-.banner-images {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.banner-images img {
-    max-width: 100px;   /* 원하는 최대 크기 */
-    max-height: 120px;  /* 세로 크기도 제한 */
-    object-fit: contain; /* 이미지 비율 유지 + 잘리지 않음 */
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-
 .banner-container {
     position: relative;
     height: 400px;

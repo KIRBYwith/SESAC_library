@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - KIRBY 도서관</title>
+    <link rel="stylesheet" href="/css/style.css"> <!-- index.html과 동일하게 외부 CSS 참조 -->
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef5 0%, #fff8e1 50%, #f3e5f5 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+
+
+        .main-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-title {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(255, 179, 217, 0.2);
+            text-align: center;
+            border: 2px solid rgba(255, 179, 217, 0.1);
+        }
+
+        .page-title h2 {
+            color: #d63384;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(255, 179, 217, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(255, 179, 217, 0.1);
+        }
+
+        .user-info p {
+            margin: 0.3rem 0;
+            font-weight: 600;
+            color: #d63384;
+        }
+
+        .btn-edit {
+            padding: 0.6rem 1.2rem;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn-edit:hover {
+            background-color: #ff4c9e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ffb3d9;
+        }
+
+        th {
+            background: #ffeef5;
+            color: #d63384;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-return {
+            padding: 0.5rem 1rem;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn-return:hover {
+            background-color: #ff4c9e;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>📖KIRBY 도서관📖</h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="books.html">도서목록</a>
+    </nav>
+</header>
+
+<div class="main-container">
+    <div class="page-title">
+        <h2>마이페이지</h2>
+        <p>회원정보와 대출한 도서를 확인할 수 있습니다.</p>
+    </div>
+
+    <div class="user-info">
+        <div>
+            <p>이름: 홍길동</p>
+            <p>이메일: hong@example.com</p>
+            <p>총 대출 권수: <span id="totalBooks">0</span></p>
+        </div>
+        <button class="btn-edit" onclick="editUserInfo()">회원정보 수정</button>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>제목</th>
+            <th>저자</th>
+            <th>대출일</th>
+            <th>반납예정일</th>
+            <th>반납</th>
+        </tr>
+        </thead>
+        <tbody id="bookTableBody">
+        <!-- JS로 동적으로 추가 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const books = [
+        { title: '자바스크립트 완벽 가이드', author: '데이비드 플래너건', loanDate: '2025-08-01', dueDate: '2025-08-15' },
+        { title: 'HTML & CSS 디자인 패턴', author: '조던 해리슨', loanDate: '2025-08-05', dueDate: '2025-08-19' },
+        { title: '모던 웹 개발', author: '사라 존슨', loanDate: '2025-08-07', dueDate: '2025-08-21' }
+    ];
+
+    const bookTableBody = document.getElementById('bookTableBody');
+    const totalBooksSpan = document.getElementById('totalBooks');
+
+    function renderTable() {
+        bookTableBody.innerHTML = '';
+        totalBooksSpan.textContent = books.length;
+
+        books.forEach((book, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${book.title}</td>
+                <td>${book.author}</td>
+                <td>${book.loanDate}</td>
+                <td>${book.dueDate}</td>
+                <td><button class="btn-return" onclick="returnBook(${index})">반납</button></td>
+            `;
+            bookTableBody.appendChild(tr);
+        });
+    }
+
+    function returnBook(index) {
+        if (confirm(`${books[index].title} 책을 반납하시겠습니까?`)) {
+            books.splice(index, 1);
+            renderTable();
+            alert('반납 완료!');
+        }
+    }
+
+    function editUserInfo() {
+        // 회원정보 수정 페이지로 이동
+        window.location.href = 'editUser.html';
+    }
+
+    renderTable(); // 초기 렌더링
+</script>
+</body>
+</html>
