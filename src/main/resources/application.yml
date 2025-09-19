@@ -1,6 +1,8 @@
 spring:
   application:
     name: SESAC_Library
+  jmx:
+    enabled: false
 
   jpa:
     open-in-view: false
@@ -18,3 +20,4 @@ spring:
       local: local
       prod: prod
       secure: secure
+
