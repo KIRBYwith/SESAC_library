@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 보기 - 도서관 시스템</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef5 0%, #fff8e1 50%, #f3e5f5 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 30px rgba(255, 192, 203, 0.2);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid #ffb3d9;
+        }
+
+        header h1 {
+            text-align: center;
+            background: linear-gradient(45deg, #ff99cc, #ffcc99);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #d63384;
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, rgba(255, 179, 217, 0.1), rgba(255, 235, 179, 0.1));
+            border: 2px solid transparent;
+        }
+
+        nav a:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 179, 217, 0.4);
+            border-color: #ffb3d9;
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .board-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(255, 179, 217, 0.2);
+            border: 2px solid rgba(255, 179, 217, 0.1);
+        }
+
+        .post-header {
+            border-bottom: 2px solid rgba(255, 179, 217, 0.2);
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .post-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #d63384;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-meta {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .post-content {
+            padding: 1rem 0;
+            min-height: 200px;
+            white-space: pre-line;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-like {
+            background: linear-gradient(45deg, #ff99cc, #ffe066);
+            color: #d63384;
+        }
+
+        .btn-like:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(255, 179, 217, 0.3);
+        }
+
+        .btn-back {
+            background: rgba(255, 179, 217, 0.2);
+            color: #d63384;
+        }
+
+        .btn-back:hover {
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+            color: white;
+        }
+
+        .btn-edit {
+            background: linear-gradient(45deg, #ffe066, #ff99cc);
+            color: #d63384;
+        }
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 179, 217, 0.3);
+        }
+
+
+        /* 댓글 */
+        .comments-section {
+            margin-top: 2rem;
+        }
+
+        .comments-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #d63384;
+            margin-bottom: 1rem;
+        }
+
+        .comment {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .comment-meta {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 179, 217, 0.3);
+            padding: 0.8rem;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-form button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+            color: #d63384;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .comment-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 179, 217, 0.3);
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>KIRBY 도서관</h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="board.html">게시판</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="board-card">
+        <div class="post-header">
+            <h2 class="post-title" id="postTitle">게시글 제목 예시</h2>
+            <div class="post-meta">
+                <span>작성자: <b id="postAuthor">관리자</b></span>
+                <span>날짜: <span id="postDate">2025-09-10</span></span>
+                <span>조회수: <span id="postViews">12</span></span>
+            </div>
+        </div>
+
+        <div class="post-content" id="postContent">
+            여기에 게시글 본문 내용이 표시됩니다.
+            여러 줄도 자연스럽게 표시 가능.
+        </div>
+
+        <div class="post-actions" id="postActions">
+            <button class="btn btn-like" onclick="likePost()">❤️ 좋아요 <span id="likeCount">0</span></button>
+            <button class="btn btn-back" onclick="goBack()">목록으로</button>
+            <!-- 수정 버튼은 JS에서 동적 생성 -->
+        </div>
+
+
+        <!-- 댓글 -->
+        <div class="comments-section">
+            <h3 class="comments-title">댓글</h3>
+            <div id="commentList">
+                <div class="comment">
+                    <div class="comment-meta">익명 · 2025-09-10</div>
+                    <div class="comment-text">좋은 글이네요!</div>
+                </div>
+            </div>
+
+            <div class="comment-form" id="commentFormWrapper">
+                <textarea id="commentInput" rows="3" placeholder="댓글을 입력하세요"></textarea>
+                <button onclick="addComment()">댓글 등록</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
+    const loggedInUser = localStorage.getItem("username"); // 로그인 시 저장한 사용자명
+
+
+    // 임시 데이터 (실제로는 서버에서 가져옴)
+    const samplePost = {
+        id: postId,
+        title: "샘플 게시글 " + postId,
+        author: "관리자",
+        date: "2025-09-10",
+        views: 25,
+        likes: 5,
+        content: "이것은 게시글 본문입니다.\n줄바꿈도 가능합니다.\n게시글 번호: " + postId
+    };
+
+    document.getElementById("postTitle").textContent = samplePost.title;
+    document.getElementById("postAuthor").textContent = samplePost.author;
+    document.getElementById("postDate").textContent = samplePost.date;
+    document.getElementById("postViews").textContent = samplePost.views;
+    document.getElementById("likeCount").textContent = samplePost.likes;
+    document.getElementById("postContent").textContent = samplePost.content;
+
+    // 로그인 사용자 == 작성자이면 수정 버튼 표시
+    if (loggedInUser && loggedInUser === samplePost.author) {
+        showEditButton(postId);
+    }
+
+    // 좋아요 기능
+    function likePost() {
+        let count = parseInt(document.getElementById("likeCount").textContent);
+        document.getElementById("likeCount").textContent = count + 1;
+        alert("좋아요를 눌렀습니다!");
+    }
+
+    function showEditButton(postId) {
+        const actions = document.getElementById("postActions");
+        const editBtn = document.createElement("button");
+        editBtn.className = "btn btn-edit";
+        editBtn.textContent = "수정";
+        editBtn.onclick = function() {
+            window.location.href = `boardEdit.html?id=${postId}`;
+        };
+        actions.appendChild(editBtn);
+    }
+
+
+    // 댓글 등록
+    function addComment() {
+        const commentInput = document.getElementById("commentInput");
+        const text = commentInput.value.trim();
+
+        if (!text) {
+            alert("댓글을 입력해주세요.");
+            return;
+        }
+
+        const commentList = document.getElementById("commentList");
+        const newComment = document.createElement("div");
+        newComment.classList.add("comment");
+        newComment.innerHTML = `
+      <div class="comment-meta">나 · 방금 전</div>
+      <div class="comment-text">${text}</div>
+    `;
+        commentList.appendChild(newComment);
+
+        commentInput.value = "";
+    }
+
+    // 목록으로
+    function goBack() {
+        window.location.href = "board.html";
+    }
+
+    // 로그인 상태 체크
+    document.addEventListener("DOMContentLoaded", () => {
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+        if (!isLoggedIn) {
+            document.getElementById("commentFormWrapper").style.display = "none";
+        }
+    });
+</script>
+</body>
+</html>

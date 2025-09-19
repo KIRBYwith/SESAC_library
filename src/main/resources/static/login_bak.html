@@ -101,26 +101,8 @@
 <script>
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        // 간단 로그인 유효성 체크 (예시)
-        if (email === '' || password === '') {
-            alert('아이디와 비밀번호를 모두 입력해주세요.');
-            return;
-        }
-
-        // 여기서 실제 서버 로그인 API 호출 대신 성공 처리
-        // 성공 시 localStorage에 로그인 상태 저장
-        localStorage.setItem('isLoggedIn', 'true');
-
-        alert('로그인 성공!');
-
-        // 메인 페이지로 이동
-        window.location.href = "index.html";
+        alert('로그인 기능은 프론트엔드 샘플용입니다.');
     });
 </script>
-<script src="/js/app.js"></script>
 </body>
 </html>

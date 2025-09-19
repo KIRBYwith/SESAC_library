@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원정보 수정 - KIRBY 도서관</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef5 0%, #fff8e1 50%, #f3e5f5 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 4px 30px rgba(255, 192, 203, 0.2);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid #ffb3d9;
+        }
+
+        header h1 {
+            text-align: center;
+            background: linear-gradient(45deg, #ff99cc, #ffcc99);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(255, 192, 203, 0.3);
+            font-weight: 700;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #d63384;
+            font-weight: 600;
+            padding: 0.8rem 1.8rem;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(45deg, rgba(255, 179, 217, 0.1), rgba(255, 235, 179, 0.1));
+            border: 2px solid transparent;
+        }
+
+        nav a:hover {
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 179, 217, 0.4);
+            border-color: #ffb3d9;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        nav a:hover::before {
+            left: 0;
+        }
+
+        .main-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-title {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(255, 179, 217, 0.2);
+            text-align: center;
+            border: 2px solid rgba(255, 179, 217, 0.1);
+        }
+
+        .page-title h2 {
+            color: #d63384;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        form {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 2rem;
+            box-shadow: 0 15px 40px rgba(255, 179, 217, 0.2);
+            border: 2px solid rgba(255, 179, 217, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            color: #d63384;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 1rem;
+            border: 2px solid rgba(255, 179, 217, 0.3);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 8px 25px rgba(255, 179, 217, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save {
+            background-color: #ff69b4;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #ff4c9e;
+        }
+
+        .btn-cancel {
+            background-color: #eee;
+            color: #d63384;
+        }
+
+        .btn-cancel:hover {
+            background-color: #ffd6e8;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>KIRBY 도서관</h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="mypage.html">마이페이지</a>
+    </nav>
+</header>
+
+<div class="main-container">
+    <div class="page-title">
+        <h2>회원정보 수정</h2>
+        <p>회원정보를 수정하고 저장할 수 있습니다.</p>
+    </div>
+
+    <form id="editUserForm">
+        <div class="form-group">
+            <label for="name">이름</label>
+            <input type="text" id="name" name="name" value="홍길동" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" value="hong@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">비밀번호 변경</label>
+            <input type="password" id="password" name="password" placeholder="새 비밀번호 입력 (선택)">
+        </div>
+
+        <div class="form-group">
+            <label for="passwordConfirm">비밀번호 확인</label>
+            <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="새 비밀번호 확인 (선택)">
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-save">저장</button>
+            <button type="button" class="btn btn-cancel" onclick="cancelEdit()">취소</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function cancelEdit() {
+        window.location.href = 'mypage.html';
+    }
+
+    document.getElementById('editUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+        if (password !== passwordConfirm) {
+            alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+            return;
+        }
+
+        // 예시로 localStorage에 저장 (실제 서버 연동 필요)
+        localStorage.setItem('userName', name);
+        localStorage.setItem('userEmail', email);
+        if(password) localStorage.setItem('userPassword', password);
+
+        alert('회원정보가 저장되었습니다.');
+        window.location.href = 'mypage.html';
+    });
+
+    // 초기 로드 시 기존 정보 불러오기
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedName = localStorage.getItem('userName') || '홍길동';
+        const savedEmail = localStorage.getItem('userEmail') || 'hong@example.com';
+
+        document.getElementById('name').value = savedName;
+        document.getElementById('email').value = savedEmail;
+    });
+</script>
+</body>
+</html>
