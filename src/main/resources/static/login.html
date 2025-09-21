@@ -2,125 +2,214 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>로그인 - KIRBY 도서관</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <style>
-        /* 로그인 폼 관련 스타일 */
-        .login-form {
-            background-color: white;
-            padding: 40px;
-            margin: 50px auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            width: 430px;  /* 기존 300px에서 400px로 확대 */
-            display: flex;
-            flex-direction: column;
-        }
-
-        .login-form h2 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .login-form label {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        .login-form input {
-            margin-bottom: 15px;
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .button-row {
-            display: flex;           /* 버튼들을 가로로 배치 */
-            gap: 5px;                /* 버튼 사이 간격 */
-            flex-wrap: nowrap;       /* 한 줄 유지 */
-        }
-
-        .login-form button {
-            padding: 10px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            white-space: nowrap; /* 버튼 텍스트 줄바꿈 방지 */
-        }
-
-        .login-btn {
-            background-color: #ff69b4;
-            color: white;
-        }
-
-        .find-btn {
-            background-color: #eee;
-            color: #333;
-            margin-left: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css?v=20250118admin">
+    <link rel="stylesheet" href="/css/library-enhanced.css?v=20250118library">
+    <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
 </head>
 <body>
-<header>
-    <h1>KIRBY 도서관</h1>
-    <nav>
-        <a href="index.html">홈</a>
-        <a href="login.html">로그인</a>
-        <a href="signup.html">회원가입</a>
-        <a href="board.html">게시판</a>
-    </nav>
-</header>
+    <header>
+        <h1><a href="index.html" class="logo-link">📖KIRBY 도서관📖</a></h1>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="signup.html" id="signupBtn">회원가입</a>
+            <a href="books.html">도서목록</a>
+            <a href="board.html">게시판</a>
+            <a href="login.html" id="loginBtn">로그인</a>
+            <a href="mypage.html" id="mypageBtn" style="display:none;">마이페이지</a>
+            <a href="admin.html" id="adminBtn" style="display:none; background-color: #ff6b6b; color: white; padding: 5px 10px; border-radius: 5px;">관리자페이지</a>
+            <a href="#" id="logoutBtn" onclick="logout()" style="display:none;">로그아웃</a>
+        </nav>
+    </header>
 
-<div class="login-form">
-    <h2>로그인</h2>
-    <form id="loginForm">
-        <label for="email">아이디</label>
-        <input type="email" id="email" name="email" placeholder="example@domain.com" required>
-
-        <label for="password">비밀번호</label>
-        <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
-
-        <div class="button-row">
-            <button type="submit" class="login-btn">로그인</button>
-            <div>
-                <button type="button" class="find-btn" onclick="alert('아이디 찾기')">아이디 찾기</button>
-                <button type="button" class="find-btn" onclick="alert('비밀번호 찾기')">비밀번호 찾기</button>
+    <div class="auth-container">
+        <div class="auth-form">
+            <div class="auth-header">
+                <h2>🔐 로그인</h2>
+                <p>KIRBY 도서관에 오신 것을 환영합니다!</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">아이디</label>
+                    <input type="text" id="username" name="username" required placeholder="아이디를 입력하세요">
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">비밀번호</label>
+                    <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요">
+                </div>
+                
+                <button type="submit" class="btn-primary">로그인</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>아직 회원이 아니신가요? <a href="signup.html">회원가입</a></p>
+                <p><a href="index.html">홈으로 돌아가기</a></p>
             </div>
         </div>
-    </form>
-</div>
+    </div>
 
-<footer>
-    © 2025 KIRBY 도서관
-</footer>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // 간단한 로그인 로직 (실제로는 서버와 통신)
+            if (username && password) {
+                // 관리자 계정 확인
+                if (username === 'admin' && password === 'admin') {
+                    const user = {
+                        id: 1,
+                        username: username,
+                        email: 'admin@library.com',
+                        role: 'ADMIN',
+                        loans: [],
+                        reservations: [],
+                        points: 1000
+                    };
+                    
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    alert('관리자로 로그인 성공!');
+                    window.location.href = 'admin.html';
+                } else {
+                    // 일반 사용자 로그인 시뮬레이션
+                    const user = {
+                        id: 2,
+                        username: username,
+                        email: username + '@library.com',
+                        role: 'USER',
+                        loans: [],
+                        reservations: [],
+                        points: 0
+                    };
+                    
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    alert('로그인 성공!');
+                    window.location.href = 'index.html';
+                }
+            } else {
+                alert('아이디와 비밀번호를 입력해주세요.');
+            }
+        });
 
-<script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        // 간단 로그인 유효성 체크 (예시)
-        if (email === '' || password === '') {
-            alert('아이디와 비밀번호를 모두 입력해주세요.');
-            return;
+        // 로그아웃 기능
+        function logout() {
+            if (confirm('정말 로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('user');
+                alert('로그아웃 되었습니다.');
+                location.reload();
+            }
         }
 
-        // 여기서 실제 서버 로그인 API 호출 대신 성공 처리
-        // 성공 시 localStorage에 로그인 상태 저장
-        localStorage.setItem('isLoggedIn', 'true');
+        // 로그인 상태 체크 및 헤더 업데이트
+        function updateHeaderForLogin() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const loginBtn = document.getElementById('loginBtn');
+            const signupBtn = document.getElementById('signupBtn');
+            const mypageBtn = document.getElementById('mypageBtn');
+            const adminBtn = document.getElementById('adminBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
 
-        alert('로그인 성공!');
+            if (isLoggedIn) {
+                // 로그인된 상태
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (signupBtn) signupBtn.style.display = 'none';
+                if (mypageBtn) mypageBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                
+                // 관리자 체크
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role === 'ADMIN' && adminBtn) {
+                    adminBtn.style.display = 'inline-block';
+                }
+            } else {
+                // 로그인되지 않은 상태
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (signupBtn) signupBtn.style.display = 'inline-block';
+                if (mypageBtn) mypageBtn.style.display = 'none';
+                if (adminBtn) adminBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+            }
+        }
 
-        // 메인 페이지로 이동
-        window.location.href = "index.html";
-    });
-</script>
-<script src="/js/app.js"></script>
+        // 로그인 상태 확인
+        document.addEventListener('DOMContentLoaded', function () {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+            if (isLoggedIn && user) {
+                // 이미 로그인된 상태면 홈으로 리다이렉트
+                window.location.href = 'index.html';
+            } else {
+                // 헤더 업데이트
+                updateHeaderForLogin();
+            }
+        });
+    </script>
+
+    <!-- 푸터 -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-main">
+                <div class="footer-section">
+                    <h4>📚 KIRBY 도서관</h4>
+                    <p>지식과 꿈이 만나는 공간</p>
+                    <div class="footer-contact">
+                        <p><strong>주소:</strong> 서울시 강남구 도서관로 123</p>
+                        <p><strong>전화:</strong> 02-1234-5678</p>
+                        <p><strong>이메일:</strong> info@kirbylibrary.kr</p>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 빠른 링크</h4>
+                    <ul>
+                        <li><a href="booklist.html">도서목록</a></li>
+                        <li><a href="board.html">게시판</a></li>
+                        <li><a href="login.html">로그인</a></li>
+                        <li><a href="signup.html">회원가입</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>📖 서비스</h4>
+                    <ul>
+                        <li><a href="#">도서 대출</a></li>
+                        <li><a href="#">예약 서비스</a></li>
+                        <li><a href="#">독서 모임</a></li>
+                        <li><a href="#">문화 행사</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>📞 문의</h4>
+                    <ul>
+                        <li><a href="#">자주 묻는 질문</a></li>
+                        <li><a href="#">이용 안내</a></li>
+                        <li><a href="#">개인정보처리방침</a></li>
+                        <li><a href="#">이용약관</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div class="footer-info">
+                    <p>© 2025 KIRBY 도서관. All rights reserved.</p>
+                    <p>사업자등록번호: 123-45-67890 | 대표: 김도서</p>
+                </div>
+                <div class="footer-social">
+                    <a href="#" class="social-link">📘</a>
+                    <a href="#" class="social-link">📷</a>
+                    <a href="#" class="social-link">🐦</a>
+                    <a href="#" class="social-link">📺</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

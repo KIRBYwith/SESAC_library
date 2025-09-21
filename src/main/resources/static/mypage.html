@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 - KIRBY 도서관</title>
-    <link rel="stylesheet" href="/css/style.css"> <!-- index.html과 동일하게 외부 CSS 참조 -->
+    <link rel="stylesheet" href="/css/style.css?v=20250118update">
+    <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
 
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ffeef5 0%, #fff8e1 50%, #f3e5f5 100%);
+            font-family: 'Georgia', 'Times New Roman', 'Apple SD Gothic Neo', 'Noto Sans KR', serif;
+            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
             min-height: 100vh;
             margin: 0;
             padding: 0;
@@ -114,11 +115,17 @@
 </head>
 <body>
 <header>
-    <h1>📖KIRBY 도서관📖</h1>
-    <nav>
-        <a href="index.html">홈</a>
-        <a href="books.html">도서목록</a>
-    </nav>
+    <h1><a href="index.html" class="logo-link">📖KIRBY 도서관📖</a></h1>
+        <nav>
+            <a href="index.html">홈</a>
+            <a href="signup.html" id="signupBtn">회원가입</a>
+            <a href="books.html">도서목록</a>
+            <a href="board.html">게시판</a>
+            <a href="login.html" id="loginBtn">로그인</a>
+            <a href="mypage.html" id="mypageBtn" style="display:none;">마이페이지</a>
+            <a href="admin.html" id="adminBtn" style="display:none; background-color: #ff6b6b; color: white; padding: 5px 10px; border-radius: 5px;">관리자페이지</a>
+            <a href="#" id="logoutBtn" onclick="logout()" style="display:none;">로그아웃</a>
+        </nav>
 </header>
 
 <div class="main-container">
@@ -150,49 +157,240 @@
         <!-- JS로 동적으로 추가 -->
         </tbody>
     </table>
+
+    <div style="margin-top:2rem; background: rgba(255,255,255,0.9); padding:1rem; border-radius:12px;">
+        <p>현재 포인트: <strong id="points">0</strong> 점</p>
+        <button id="exchangeBtn" class="btn-return">5000포인트 문화상품권 교환 신청</button>
+    </div>
 </div>
 
 <script>
-    const books = [
-        { title: '자바스크립트 완벽 가이드', author: '데이비드 플래너건', loanDate: '2025-08-01', dueDate: '2025-08-15' },
-        { title: 'HTML & CSS 디자인 패턴', author: '조던 해리슨', loanDate: '2025-08-05', dueDate: '2025-08-19' },
-        { title: '모던 웹 개발', author: '사라 존슨', loanDate: '2025-08-07', dueDate: '2025-08-21' }
-    ];
+    // state helper
+    const s = document.createElement('script');
+    s.src = '/js/state.js';
+    document.head.appendChild(s);
 
     const bookTableBody = document.getElementById('bookTableBody');
     const totalBooksSpan = document.getElementById('totalBooks');
+    const pointsEl = document.getElementById('points');
+    const exchangeBtn = document.getElementById('exchangeBtn');
+
+    // 간단 도서 정보 맵 (books.html과 동일 id 사용 전제)
+    const BOOKS = {
+        1: { title:"달콤한 나의 도시", author:"정이현" },
+        2: { title:"1리터의 눈물", author:"키토아야" },
+        3: { title:"청소부 밥", author:"홉킨스, 토드" },
+        4: { title:"마시멜로 이야기", author:"포사다, 호아킴 데" },
+        6: { title:"퀴즈 쇼", author:"김영하" },
+        20: { title:"재미있는 영양이야기", author:"김현숙" },
+        30: { title:"일본. 1 : 떠나기 전에", author:"심청보" },
+    };
 
     function renderTable() {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const state = JSON.parse(localStorage.getItem('bookStatus') || '{}');
+        const loanIds = user?.loans || [];
         bookTableBody.innerHTML = '';
-        totalBooksSpan.textContent = books.length;
+        totalBooksSpan.textContent = loanIds.length;
+        pointsEl.textContent = user?.points || 0;
 
-        books.forEach((book, index) => {
+        loanIds.forEach((id) => {
+            const info = BOOKS[id] || { title: `도서#${id}`, author: '' };
+            const loanDate = new Date();
+            const due = new Date(Date.now() + 13*24*60*60*1000);
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${book.title}</td>
-                <td>${book.author}</td>
-                <td>${book.loanDate}</td>
-                <td>${book.dueDate}</td>
-                <td><button class="btn-return" onclick="returnBook(${index})">반납</button></td>
+                <td>${info.title}</td>
+                <td>${info.author}</td>
+                <td>${loanDate.toISOString().slice(0,10)}</td>
+                <td>${due.toISOString().slice(0,10)}</td>
+                <td><button class="btn-return" data-id="${id}">반납</button></td>
             `;
             bookTableBody.appendChild(tr);
         });
+
+        // 반납 핸들러
+        bookTableBody.querySelectorAll('button[data-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.getAttribute('data-id'));
+                if (!confirm('반납하시겠습니까?')) return;
+                const user = JSON.parse(localStorage.getItem('user'));
+                user.loans = (user.loans||[]).filter(bid => bid !== id);
+                localStorage.setItem('user', JSON.stringify(user));
+                // 반납 처리: 책 상태 대출가능으로
+                const st = JSON.parse(localStorage.getItem('bookStatus') || '{}');
+                st[id] = { status: '대출가능' };
+                localStorage.setItem('bookStatus', JSON.stringify(st));
+                // 예약자에게 자동 대출 전환은 단순화: 예약자 존재 시 첫 사용자에게 상태만 유지하도록 구현할 수 있음
+                alert('반납 완료!');
+                renderTable();
+            });
+        });
     }
 
-    function returnBook(index) {
-        if (confirm(`${books[index].title} 책을 반납하시겠습니까?`)) {
-            books.splice(index, 1);
-            renderTable();
-            alert('반납 완료!');
-        }
-    }
+    exchangeBtn.addEventListener('click', () => {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) { alert('로그인 후 이용 가능합니다.'); return; }
+        if ((user.points||0) < 5000) { alert('포인트가 부족합니다. (5000 필요)'); return; }
+        user.points -= 5000;
+        localStorage.setItem('user', JSON.stringify(user));
+        // 요청 적재
+        if (window.State) State.addExchangeRequest(user.email, user.name, 5000);
+        alert('교환 신청이 접수되었습니다.');
+        renderTable();
+    });
 
     function editUserInfo() {
-        // 회원정보 수정 페이지로 이동
         window.location.href = 'editUser.html';
     }
 
-    renderTable(); // 초기 렌더링
+    renderTable();
+
+    // 로그인 상태 관리
+    document.addEventListener('DOMContentLoaded', function () {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const mypageBtn = document.getElementById('mypageBtn');
+        const adminBtn = document.getElementById('adminBtn');
+
+        if (isLoggedIn && user) {
+            // 로그인 상태면 로그인 → 로그아웃으로 바꿈
+            loginBtn.textContent = '로그아웃';
+            loginBtn.href = '#';
+            loginBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('user');
+                alert('로그아웃 되었습니다.');
+                window.location.href = 'index.html';
+            });
+
+            // 회원가입 버튼 숨기기
+            if (signupBtn) signupBtn.style.display = 'none';
+
+            // 마이페이지 버튼 보이기
+            if (mypageBtn) mypageBtn.style.display = 'inline-block';
+
+            // 관리자 계정인 경우 관리자페이지 버튼 보이기
+            if (user.role === 'ADMIN') {
+                if (adminBtn) adminBtn.style.display = 'inline-block';
+            }
+        } else {
+            // 로그인 상태가 아니면 로그인 버튼을 login.html로 연결
+            if (loginBtn) {
+                loginBtn.href = 'login.html';
+            }
+            
+            // 마이페이지, 관리자페이지 버튼 숨기기
+            if (mypageBtn) mypageBtn.style.display = 'none';
+            if (adminBtn) adminBtn.style.display = 'none';
+        }
+    });
+
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('정말 로그아웃 하시겠습니까?')) {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
+            alert('로그아웃 되었습니다.');
+            location.reload();
+        }
+    }
+
+    // 로그인 상태 체크 및 헤더 업데이트
+    function updateHeaderForLogin() {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const mypageBtn = document.getElementById('mypageBtn');
+        const adminBtn = document.getElementById('adminBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (isLoggedIn) {
+            // 로그인된 상태
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (signupBtn) signupBtn.style.display = 'none';
+            if (mypageBtn) mypageBtn.style.display = 'inline-block';
+            if (logoutBtn) logoutBtn.style.display = 'inline-block';
+            
+            // 관리자 체크
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role === 'ADMIN' && adminBtn) {
+                adminBtn.style.display = 'inline-block';
+            }
+        } else {
+            // 로그인되지 않은 상태
+            if (loginBtn) loginBtn.style.display = 'inline-block';
+            if (signupBtn) signupBtn.style.display = 'inline-block';
+            if (mypageBtn) mypageBtn.style.display = 'none';
+            if (adminBtn) adminBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+        }
+    }
+
+    // 페이지 로드 시 헤더 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+        updateHeaderForLogin();
+    });
 </script>
+
+<!-- 푸터 -->
+<footer>
+    <div class="footer-content">
+        <div class="footer-main">
+            <div class="footer-section">
+                <h4>📚 KIRBY 도서관</h4>
+                <p>지식과 꿈이 만나는 공간</p>
+                <div class="footer-contact">
+                    <p><strong>주소:</strong> 서울시 강남구 도서관로 123</p>
+                    <p><strong>전화:</strong> 02-1234-5678</p>
+                    <p><strong>이메일:</strong> info@kirbylibrary.kr</p>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>🔗 빠른 링크</h4>
+                <ul>
+                    <li><a href="books.html">도서목록</a></li>
+                    <li><a href="board.html">게시판</a></li>
+                    <li><a href="login.html">로그인</a></li>
+                    <li><a href="signup.html">회원가입</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>📖 서비스</h4>
+                <ul>
+                    <li><a href="#">도서 대출</a></li>
+                    <li><a href="#">예약 서비스</a></li>
+                    <li><a href="#">독서 모임</a></li>
+                    <li><a href="#">문화 행사</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>📞 문의</h4>
+                <ul>
+                    <li><a href="#">자주 묻는 질문</a></li>
+                    <li><a href="#">이용 안내</a></li>
+                    <li><a href="#">개인정보처리방침</a></li>
+                    <li><a href="#">이용약관</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-info">
+                <p>© 2025 KIRBY 도서관. All rights reserved.</p>
+                <p>사업자등록번호: 123-45-67890 | 대표: 김도서</p>
+            </div>
+            <div class="footer-social">
+                <a href="#" class="social-link">📘</a>
+                <a href="#" class="social-link">📷</a>
+                <a href="#" class="social-link">🐦</a>
+                <a href="#" class="social-link">📺</a>
+            </div>
+        </div>
+    </div>
+</footer>
 </body>
 </html>
