@@ -24,8 +24,8 @@ Thumbs.db
 
 ### Environment / Config ###
 *.env
-# application-prod.yml   # 민감정보 있으면 주석 해제
-# application-secure.yml
+application-local.yml
+# application-secure.yml  # 민감정보 있으면 주석 해제
 
 ### Others ###
 node_modules/
