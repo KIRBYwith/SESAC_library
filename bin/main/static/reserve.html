@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서 예약 - KIRBY 도서관</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container { max-width: 720px; margin: 2rem auto; background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 16px; }
+        .actions { margin-top: 1rem; }
+        .btn { padding: 0.6rem 1.2rem; border: 0; border-radius: 8px; background: #ff69b4; color: #fff; cursor: pointer; font-weight: 700; }
+        .btn-outline { background: #fff; color: #d63384; border: 2px solid #ffb3d9; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>📖KIRBY 도서관📖</h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="books.html">도서목록</a>
+    </nav>
+    <script src="/js/state.js"></script>
+</header>
+
+<div class="container">
+    <h2>도서 예약</h2>
+    <p id="bookInfo">도서 정보를 불러오는 중…</p>
+    <div class="actions">
+        <button id="reserveBtn" class="btn">예약 신청</button>
+        <a href="books.html" class="btn btn-outline">목록으로</a>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(location.search);
+    const bookId = parseInt(params.get('bookId'));
+    const BOOKS = {
+        1: { title:"달콤한 나의 도시", author:"정이현" },
+        2: { title:"1리터의 눈물", author:"키토아야" },
+        3: { title:"청소부 밥", author:"홉킨스, 토드" },
+        4: { title:"마시멜로 이야기", author:"포사다, 호아킴 데" },
+        6: { title:"퀴즈 쇼", author:"김영하" },
+        20: { title:"재미있는 영양이야기", author:"김현숙" },
+        30: { title:"일본. 1 : 떠나기 전에", author:"심청보" },
+    };
+
+    const infoEl = document.getElementById('bookInfo');
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!bookId || !BOOKS[bookId]) {
+        infoEl.textContent = '잘못된 접근입니다.';
+        document.getElementById('reserveBtn').disabled = true;
+    } else {
+        const b = BOOKS[bookId];
+        infoEl.textContent = `${b.title} — ${b.author}`;
+    }
+
+    document.getElementById('reserveBtn').addEventListener('click', () => {
+        if (!localStorage.getItem('isLoggedIn')) { alert('로그인 후 이용 가능합니다.'); return; }
+        if (window.State) {
+            State.addReservation(bookId, user.email);
+            const u = JSON.parse(localStorage.getItem('user'));
+            u.reservations = Array.from(new Set([...(u.reservations||[]), bookId]));
+            localStorage.setItem('user', JSON.stringify(u));
+        }
+        alert('예약이 접수되었습니다.');
+        window.location.href = 'books.html';
+    });
+</script>
+</body>
+</html>
+
+
