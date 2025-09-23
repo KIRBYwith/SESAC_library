@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/carousel.css?v=20250118carousel">
     <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
     <script src="/js/numberFormatter.js?v=20250118update"></script>
+    <script src="/js/state.js"></script>
 </head>
 <body>
 <header>
@@ -24,7 +25,7 @@
         <a href="login.html" id="loginBtn">로그인</a>
         <a href="mypage.html" id="mypageBtn" style="display:none;">마이페이지</a>
         <a href="admin.html" id="adminBtn" style="display:none; background-color: #ff6b6b; color: white; padding: 5px 10px; border-radius: 5px;">관리자페이지</a>
-        <a href="#" id="logoutBtn" onclick="logout()" style="display:none;">로그아웃</a>
+        <a href="#" id="logoutBtn" onclick="State.logout()" style="display:none;">로그아웃</a>
     </nav>
 </header>
 
@@ -601,46 +602,8 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-
-        if (isLoggedIn && user) {
-            // 로그인 상태면 로그인 → 로그아웃으로 바꿈
-            loginBtn.textContent = '로그아웃';
-            loginBtn.href = '#';
-            loginBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('user');
-                alert('로그아웃 되었습니다.');
-                window.location.reload();
-            });
-
-            // 회원가입 버튼 숨기기
-            if (signupBtn) signupBtn.style.display = 'none';
-
-            // 마이페이지 버튼 보이기
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
-
-            // 관리자 계정인 경우 관리자페이지 버튼 보이기
-            if (user.role === 'ADMIN') {
-                if (adminBtn) adminBtn.style.display = 'inline-block';
-            }
-        } else {
-            // 로그인 상태가 아니면 로그인 버튼을 login.html로 연결
-            if (loginBtn) {
-                loginBtn.href = 'login.html';
-            }
-            
-            // 마이페이지, 관리자페이지 버튼 숨기기
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-        }
+        // State.js의 checkAuthStatus 함수 사용
+        State.checkAuthStatus();
     });
 
     // 배너 슬라이드 기능
@@ -817,46 +780,6 @@
         }, 5000);
     }
 
-    // 로그아웃 기능
-    function logout() {
-        if (confirm('정말 로그아웃 하시겠습니까?')) {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('user');
-            alert('로그아웃 되었습니다.');
-            location.reload();
-        }
-    }
-
-    // 로그인 상태 체크 및 헤더 업데이트
-    function updateHeaderForLogin() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        if (isLoggedIn) {
-            // 로그인된 상태
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-            
-            // 관리자 체크
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'admin' && adminBtn) {
-                adminBtn.style.display = 'inline-block';
-            }
-        } else {
-            // 로그인되지 않은 상태
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (signupBtn) signupBtn.style.display = 'inline-block';
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-        }
-    }
 
     // 엔터키로 검색
     document.addEventListener('DOMContentLoaded', function() {
@@ -869,8 +792,6 @@
             });
         }
         
-        // 로그인 상태에 따른 헤더 업데이트
-        updateHeaderForLogin();
     });
 
 

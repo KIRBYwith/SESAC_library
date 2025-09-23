@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/style.css?v=20250118admin">
     <link rel="stylesheet" href="/css/library-enhanced.css?v=20250118library">
     <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
+    <script src="/js/state.js"></script>
 </head>
 <body>
     <header>
@@ -19,7 +20,7 @@
             <a href="login.html" id="loginBtn">로그인</a>
             <a href="mypage.html" id="mypageBtn" style="display:none;">마이페이지</a>
             <a href="admin.html" id="adminBtn" style="display:none; background-color: #ff6b6b; color: white; padding: 5px 10px; border-radius: 5px;">관리자페이지</a>
-            <a href="#" id="logoutBtn" onclick="logout()" style="display:none;">로그아웃</a>
+            <a href="#" id="logoutBtn" onclick="State.logout()" style="display:none;">로그아웃</a>
         </nav>
     </header>
 
@@ -52,94 +53,60 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            // 간단한 로그인 로직 (실제로는 서버와 통신)
-            if (username && password) {
-                // 관리자 계정 확인
-                if (username === 'admin' && password === 'admin') {
-                    const user = {
-                        id: 1,
-                        username: username,
-                        email: 'admin@library.com',
-                        role: 'ADMIN',
-                        loans: [],
-                        reservations: [],
-                        points: 1000
-                    };
-                    
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('user', JSON.stringify(user));
-                    
-                    alert('관리자로 로그인 성공!');
-                    window.location.href = 'admin.html';
-                } else {
-                    // 일반 사용자 로그인 시뮬레이션
-                    const user = {
-                        id: 2,
-                        username: username,
-                        email: username + '@library.com',
-                        role: 'USER',
-                        loans: [],
-                        reservations: [],
-                        points: 0
-                    };
-                    
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('user', JSON.stringify(user));
-                    
-                    alert('로그인 성공!');
-                    window.location.href = 'index.html';
-                }
-            } else {
+
+            if (!username || !password) {
                 alert('아이디와 비밀번호를 입력해주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 로그인 성공 시 사용자 정보 가져오기
+                    const userResponse = await fetch('/api/auth/me');
+                    const userData = await userResponse.json();
+
+                    if (userResponse.ok && userData.authenticated) {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('user', JSON.stringify(userData));
+
+                        alert('로그인 성공!');
+
+                        // 관리자인 경우 관리자 페이지로, 일반 사용자는 홈으로
+                        if (userData.role === 'ADMIN') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    } else {
+                        throw new Error('사용자 정보를 가져올 수 없습니다.');
+                    }
+                } else {
+                    alert(data.error || '로그인에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                alert('로그인 처리 중 오류가 발생했습니다.');
             }
         });
 
-        // 로그아웃 기능
-        function logout() {
-            if (confirm('정말 로그아웃 하시겠습니까?')) {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('user');
-                alert('로그아웃 되었습니다.');
-                location.reload();
-            }
-        }
-
-        // 로그인 상태 체크 및 헤더 업데이트
-        function updateHeaderForLogin() {
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const loginBtn = document.getElementById('loginBtn');
-            const signupBtn = document.getElementById('signupBtn');
-            const mypageBtn = document.getElementById('mypageBtn');
-            const adminBtn = document.getElementById('adminBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-
-            if (isLoggedIn) {
-                // 로그인된 상태
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (signupBtn) signupBtn.style.display = 'none';
-                if (mypageBtn) mypageBtn.style.display = 'inline-block';
-                if (logoutBtn) logoutBtn.style.display = 'inline-block';
-                
-                // 관리자 체크
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.role === 'ADMIN' && adminBtn) {
-                    adminBtn.style.display = 'inline-block';
-                }
-            } else {
-                // 로그인되지 않은 상태
-                if (loginBtn) loginBtn.style.display = 'inline-block';
-                if (signupBtn) signupBtn.style.display = 'inline-block';
-                if (mypageBtn) mypageBtn.style.display = 'none';
-                if (adminBtn) adminBtn.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'none';
-            }
-        }
 
         // 로그인 상태 확인
         document.addEventListener('DOMContentLoaded', function () {
@@ -151,7 +118,7 @@
                 window.location.href = 'index.html';
             } else {
                 // 헤더 업데이트
-                updateHeaderForLogin();
+                State.checkAuthStatus();
             }
         });
     </script>
