@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:mysql://<RDS-ENDPOINT>:3306/library?serverTimezone=UTC&characterEncoding=utf8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    show-sql: true   # 일부러 켜놓으면 SQL 노출 문제도 시연 가능
+
+server:
+  port: 8080
+
+# 예: logging 레벨도 과도하게 낮춰서 정보 노출 시연
+logging:
+  level:
+    root: DEBUG
