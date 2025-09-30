@@ -174,16 +174,22 @@
     const pointsEl = document.getElementById('points');
     const exchangeBtn = document.getElementById('exchangeBtn');
 
-    // 간단 도서 정보 맵 (books.html과 동일 id 사용 전제)
-    const BOOKS = {
-        1: { title:"달콤한 나의 도시", author:"정이현" },
-        2: { title:"1리터의 눈물", author:"키토아야" },
-        3: { title:"청소부 밥", author:"홉킨스, 토드" },
-        4: { title:"마시멜로 이야기", author:"포사다, 호아킴 데" },
-        6: { title:"퀴즈 쇼", author:"김영하" },
-        20: { title:"재미있는 영양이야기", author:"김현숙" },
-        30: { title:"일본. 1 : 떠나기 전에", author:"심청보" },
-    };
+    // 사용자 대출 목록을 가져오는 함수
+    async function fetchUserLoans(userId) {
+        try {
+            const response = await fetch(`/api/books/user/${userId}/loans`);
+            if (response.ok) {
+                const loans = await response.json();
+                return loans;
+            } else {
+                console.error('대출 목록을 가져올 수 없습니다.');
+                return [];
+            }
+        } catch (error) {
+            console.error('대출 목록 로드 중 오류:', error);
+            return [];
+        }
+    }
 
     // 사용자 정보 로드 함수
     async function loadUserInfo() {
@@ -237,45 +243,62 @@
         }
     }
 
-    function renderTable() {
+    async function renderTable() {
         const user = JSON.parse(localStorage.getItem('user') || 'null');
-        const state = JSON.parse(localStorage.getItem('bookStatus') || '{}');
-        const loanIds = user?.loans || [];
-        bookTableBody.innerHTML = '';
-        // 총 대출 권수 업데이트는 제거 (더 이상 사용하지 않음)
+        if (!user || !user.userId) {
+            bookTableBody.innerHTML = '<tr><td colspan="5">로그인이 필요합니다.</td></tr>';
+            return;
+        }
 
-        loanIds.forEach((id) => {
-            const info = BOOKS[id] || { title: `도서#${id}`, author: '' };
-            const loanDate = new Date();
-            const due = new Date(Date.now() + 13*24*60*60*1000);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${info.title}</td>
-                <td>${info.author}</td>
-                <td>${loanDate.toISOString().slice(0,10)}</td>
-                <td>${due.toISOString().slice(0,10)}</td>
-                <td><button class="btn-return" data-id="${id}">반납</button></td>
-            `;
-            bookTableBody.appendChild(tr);
-        });
+        bookTableBody.innerHTML = '<tr><td colspan="5">대출 목록을 불러오는 중...</td></tr>';
 
-        // 반납 핸들러
-        bookTableBody.querySelectorAll('button[data-id]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = parseInt(btn.getAttribute('data-id'));
-                if (!confirm('반납하시겠습니까?')) return;
-                const user = JSON.parse(localStorage.getItem('user'));
-                user.loans = (user.loans||[]).filter(bid => bid !== id);
-                localStorage.setItem('user', JSON.stringify(user));
-                // 반납 처리: 책 상태 대출가능으로
-                const st = JSON.parse(localStorage.getItem('bookStatus') || '{}');
-                st[id] = { status: '대출가능' };
-                localStorage.setItem('bookStatus', JSON.stringify(st));
-                // 예약자에게 자동 대출 전환은 단순화: 예약자 존재 시 첫 사용자에게 상태만 유지하도록 구현할 수 있음
-                alert('반납 완료!');
-                renderTable();
+        try {
+            const loans = await fetchUserLoans(user.userId);
+            bookTableBody.innerHTML = '';
+
+            if (loans.length === 0) {
+                bookTableBody.innerHTML = '<tr><td colspan="5">대출중인 도서가 없습니다.</td></tr>';
+                return;
+            }
+
+            loans.forEach((loan) => {
+                const tr = document.createElement('tr');
+                const loanDate = new Date(loan.loanedAt).toLocaleDateString('ko-KR');
+                const dueDate = new Date(loan.dueDate).toLocaleDateString('ko-KR');
+
+                tr.innerHTML = `
+                    <td>${loan.title}</td>
+                    <td>${loan.author}</td>
+                    <td>${loanDate}</td>
+                    <td>${dueDate}</td>
+                    <td><button class="btn-return" data-loan-id="${loan.loanId}" data-book-id="${loan.bookId}">반납</button></td>
+                `;
+                bookTableBody.appendChild(tr);
             });
-        });
+
+            // 반납 핸들러
+            bookTableBody.querySelectorAll('button[data-loan-id]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const loanId = btn.getAttribute('data-loan-id');
+                    const bookId = btn.getAttribute('data-book-id');
+
+                    if (!confirm('반납하시겠습니까?')) return;
+
+                    try {
+                        // 여기에 반납 API 호출 추가 (나중에 구현)
+                        alert('반납 기능은 추후 구현 예정입니다.');
+                        // 임시로 테이블 새로고침
+                        renderTable();
+                    } catch (error) {
+                        console.error('반납 처리 중 오류:', error);
+                        alert('반납 처리 중 오류가 발생했습니다.');
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('대출 목록 렌더링 중 오류:', error);
+            bookTableBody.innerHTML = '<tr><td colspan="5">대출 목록을 불러올 수 없습니다.</td></tr>';
+        }
     }
 
     exchangeBtn.addEventListener('click', () => {
@@ -295,8 +318,16 @@
     }
 
     // 페이지 로드 시 사용자 정보를 먼저 로드한 후 테이블 렌더링
-    loadUserInfo().then(() => {
-        renderTable();
+    loadUserInfo().then((userData) => {
+        if (userData && userData.userId) {
+            renderTable();
+        } else {
+            // 로컬 스토리지에서 사용자 정보가 있는 경우에도 렌더링 시도
+            const localUser = JSON.parse(localStorage.getItem('user') || 'null');
+            if (localUser && localUser.userId) {
+                renderTable();
+            }
+        }
     });
 
     // 로그인 상태 관리

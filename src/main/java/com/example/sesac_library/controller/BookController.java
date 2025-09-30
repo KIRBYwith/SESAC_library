@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/books")
@@ -148,6 +149,15 @@ public class BookController {
                 return ResponseEntity.badRequest().body(response);
             }
 
+            // 이미 대출 중인지 확인
+            Optional<Loan> existingLoan = loanRepository.findByUserIdAndBookIdAndStatus(userId, bookId, "ACTIVE");
+            if (existingLoan.isPresent()) {
+                response.put("success", false);
+                response.put("message", "이미 대출 중입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 이미 예약한 책인지 확인
             Optional<Reservation> existingReservation = reservationRepository.findByUserIdAndBookIdAndStatus(userId, bookId, "ACTIVE");
             if (existingReservation.isPresent()) {
                 response.put("success", false);
@@ -210,5 +220,34 @@ public class BookController {
         stats.put("borrowedBooks", borrowedBooks.size());
 
         return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/user/{userId}/loans")
+    public ResponseEntity<List<Map<String, Object>>> getUserLoans(@PathVariable Long userId) {
+        try {
+            List<Loan> userLoans = loanRepository.findActiveLoansByUserId(userId);
+            List<Map<String, Object>> loanDetails = new ArrayList<>();
+
+            for (Loan loan : userLoans) {
+                Optional<Book> bookOpt = bookRepository.findById(loan.getBookId());
+                if (bookOpt.isPresent()) {
+                    Book book = bookOpt.get();
+                    Map<String, Object> loanInfo = new HashMap<>();
+                    loanInfo.put("loanId", loan.getLoanId());
+                    loanInfo.put("bookId", book.getBookId());
+                    loanInfo.put("title", book.getTitle());
+                    loanInfo.put("author", book.getAuthor());
+                    loanInfo.put("publisher", book.getPublisher());
+                    loanInfo.put("loanedAt", loan.getLoanedAt());
+                    loanInfo.put("dueDate", loan.getDueDate());
+                    loanInfo.put("status", loan.getStatus());
+                    loanDetails.add(loanInfo);
+                }
+            }
+
+            return ResponseEntity.ok(loanDetails);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
