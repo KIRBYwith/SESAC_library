@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
     <style>
         * {margin: 0; padding: 0; box-sizing: border-box;}
-        body {font-family: 'Georgia', 'Times New Roman', 'Apple SD Gothic Neo', 'Noto Sans KR', serif; background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%); min-height: 100vh; color: var(--text-primary); line-height: 1.6;}
+        body {background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%); min-height: 100vh; color: var(--text-primary); line-height: 1.6;}
         .main-container {max-width: 900px; margin: 2rem auto; padding: 0 2rem;}
         .page-title {background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); border-radius: 25px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 15px 40px rgba(255, 179, 217, 0.2); text-align: center; border: 2px solid rgba(255, 179, 217, 0.1);}
         .page-title h2 {color: #d63384; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;}
@@ -96,9 +96,6 @@
     </div>
 </div>
 
-<footer>
-    <p>&copy; 2024 도서관 관리 시스템</p>
-</footer>
 
 <script>
     const postForm = document.getElementById('postForm');
@@ -121,7 +118,7 @@
     document.head.appendChild(s);
 
     // 폼 제출
-    postForm.addEventListener('submit', function(e){
+    postForm.addEventListener('submit', async function(e){
         e.preventDefault();
 
         const category = this.category.value;
@@ -133,42 +130,68 @@
         if(!category){ alert('카테고리를 선택해주세요.'); return; }
         if(title.length < 2){ alert('제목을 2자 이상 입력해주세요.'); return; }
         if(author.length < 2){ alert('작성자명을 2자 이상 입력해주세요.'); return; }
-        if(content.length < 10){ alert('내용을 10자 이상 입력해주세요.'); return; }
+        if(content.length < 4){ alert('내용을 4자 이상 입력해주세요.'); return; }
         if(password.length < 4){ alert('비밀번호를 4자 이상 입력해주세요.'); return; }
 
-        // 새 게시글 데이터 생성
-        const newPost = {
-            id: Date.now(), // 임시 ID
+        // 👉 백엔드 API 요구사항에 맞게 JSON 만들기
+        const boardJson = {
             category: category,
             title: title,
             content: content,
-            author: author,
-            date: new Date().toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }),
-            views: 0,
-            file: fileInput.files.length > 0 ? fileInput.files[0].name : null
+            passwordHash: password
         };
-        
-        // 로컬 스토리지에서 기존 게시판 데이터 가져오기
-        let boardData = JSON.parse(localStorage.getItem('boardData') || '[]');
-        
-        // 새 게시글을 맨 앞에 추가
-        boardData.unshift(newPost);
-        
-        // 로컬 스토리지에 저장
-        localStorage.setItem('boardData', JSON.stringify(boardData));
-        
-        alert('게시글이 등록되었습니다!\n첨부된 파일 수: ' + fileInput.files.length);
-        
-        // 포인트 지급 (+10)
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-        if (user && window.State) {
-            State.awardPoints(user, 10);
-            alert('게시글 작성 보상: +10포인트');
+
+        const formData = new FormData();
+
+// userId 따로 추가 (현재는 고정 1)
+        formData.append("userId", 1);
+
+// 개별 항목 추가
+        formData.append("userId", 1);
+        formData.append("category", category);
+        formData.append("title", title);
+        formData.append("content", content);
+        formData.append("password_hash", password);
+
+// 파일 여러 개 첨부 가능
+        Array.from(fileInput.files).forEach(file => {
+            formData.append("file", file);
+        });
+
+        try {
+            const response = await fetch("http://localhost:8080/api/board/write", {
+                method: "POST",
+                body: formData
+            });
+
+            const responseText = await response.text();  // 응답 원문 받기
+            console.log("서버 응답 원문:", responseText);
+
+            if(!response.ok){
+                throw new Error("서버 오류 발생: " + response.status + " / " + responseText);
+            }
+
+            const result = JSON.parse(responseText);
+            console.log("응답 JSON:", result);
+
+            alert("게시글이 등록되었습니다! 글 번호: " + result.boardId);
+
+            // 포인트 지급 (+10)
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (user && window.State) {
+                State.awardPoints(user, 10);
+                alert('게시글 작성 보상: +10포인트');
+            }
+
+            // 게시판으로 이동
+            window.location.href = 'board.html';
+
+        } catch(err) {
+            console.error("에러:", err);
+            alert("게시글 등록 중 오류가 발생했습니다.\n" + err.message);
         }
-        
-        // 게시판으로 이동
-        window.location.href = 'board.html';
     });
+
 
     // 로그아웃 기능
     function logout() {
@@ -195,7 +218,7 @@
             if (signupBtn) signupBtn.style.display = 'none';
             if (mypageBtn) mypageBtn.style.display = 'inline-block';
             if (logoutBtn) logoutBtn.style.display = 'inline-block';
-            
+
             // 관리자 체크
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.role === 'ADMIN' && adminBtn) {

@@ -262,28 +262,47 @@
     const postId = urlParams.get('id');
     const loggedInUser = localStorage.getItem("username"); // 로그인 시 저장한 사용자명
 
+    // 게시글 상세 조회 (파일 포함)
+    async function loadPost() {
+        try {
+            const response = await fetch(`http://localhost:8080/api/board/list/${postId}`);
+            if (!response.ok) {
+                throw new Error("게시글 불러오기 실패");
+            }
 
-    // 임시 데이터 (실제로는 서버에서 가져옴)
-    const samplePost = {
-        id: postId,
-        title: "샘플 게시글 " + postId,
-        author: "관리자",
-        date: "2025-09-10",
-        views: 25,
-        likes: 5,
-        content: "이것은 게시글 본문입니다.\n줄바꿈도 가능합니다.\n게시글 번호: " + postId
-    };
+            const post = await response.json();
 
-    document.getElementById("postTitle").textContent = samplePost.title;
-    document.getElementById("postAuthor").textContent = samplePost.author;
-    document.getElementById("postDate").textContent = samplePost.date;
-    document.getElementById("postViews").textContent = samplePost.views;
-    document.getElementById("likeCount").textContent = samplePost.likes;
-    document.getElementById("postContent").textContent = samplePost.content;
+            // 화면에 데이터 반영
+            document.getElementById("postTitle").textContent = post.title;
+            document.getElementById("postAuthor").textContent = post.userId; // 나중에 username 연동 가능
+            document.getElementById("postDate").textContent = new Date(post.createdAt).toLocaleString();
+            document.getElementById("postViews").textContent = post.views;
+            document.getElementById("likeCount").textContent = post.likes || 0;
+            document.getElementById("postContent").textContent = post.content;
 
-    // 로그인 사용자 == 작성자이면 수정 버튼 표시
-    if (loggedInUser && loggedInUser === samplePost.author) {
-        showEditButton(postId);
+            // 첨부파일 표시
+            if (post.files && post.files.length > 0) {
+                const fileListDiv = document.getElementById("fileList");
+                fileListDiv.innerHTML = "";
+                post.files.forEach(file => {
+                    const a = document.createElement("a");
+                    a.href = `http://localhost:8080${file.fileUrl}`;
+                    a.textContent = file.fileName;
+                    a.target = "_blank";
+                    fileListDiv.appendChild(a);
+                    fileListDiv.appendChild(document.createElement("br"));
+                });
+            }
+
+            // 작성자 본인일 경우 수정 버튼 표시
+            if (loggedInUser && loggedInUser === post.userId) {
+                showEditButton(post.boardId);
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("게시글을 불러오는 중 오류가 발생했습니다.");
+        }
     }
 
     // 좋아요 기능
@@ -304,7 +323,6 @@
         actions.appendChild(editBtn);
     }
 
-
     // 댓글 등록
     function addComment() {
         const commentInput = document.getElementById("commentInput");
@@ -319,11 +337,10 @@
         const newComment = document.createElement("div");
         newComment.classList.add("comment");
         newComment.innerHTML = `
-      <div class="comment-meta">나 · 방금 전</div>
-      <div class="comment-text">${text}</div>
-    `;
+            <div class="comment-meta">나 · 방금 전</div>
+            <div class="comment-text">${text}</div>
+        `;
         commentList.appendChild(newComment);
-
         commentInput.value = "";
     }
 
@@ -332,15 +349,13 @@
         window.location.href = "board.html";
     }
 
-    // 로그인 상태 체크
+    // 페이지 로드 시 실행
     document.addEventListener("DOMContentLoaded", () => {
-        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-        if (!isLoggedIn) {
-            document.getElementById("commentFormWrapper").style.display = "none";
-        }
+        updateHeaderForLogin(); // 팀원 코드 유지
+        loadPost();              // 서버에서 게시글 가져오기
     });
 
-    // 로그아웃 기능
+    // 🟢 팀원 공통 기능 (그대로 유지)
     function logout() {
         if (confirm('정말 로그아웃 하시겠습니까?')) {
             localStorage.removeItem('isLoggedIn');
@@ -350,7 +365,6 @@
         }
     }
 
-    // 로그인 상태 체크 및 헤더 업데이트
     function updateHeaderForLogin() {
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         const loginBtn = document.getElementById('loginBtn');
@@ -360,19 +374,16 @@
         const logoutBtn = document.getElementById('logoutBtn');
 
         if (isLoggedIn) {
-            // 로그인된 상태
             if (loginBtn) loginBtn.style.display = 'none';
             if (signupBtn) signupBtn.style.display = 'none';
             if (mypageBtn) mypageBtn.style.display = 'inline-block';
             if (logoutBtn) logoutBtn.style.display = 'inline-block';
-            
-            // 관리자 체크
+
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.role === 'ADMIN' && adminBtn) {
                 adminBtn.style.display = 'inline-block';
             }
         } else {
-            // 로그인되지 않은 상태
             if (loginBtn) loginBtn.style.display = 'inline-block';
             if (signupBtn) signupBtn.style.display = 'inline-block';
             if (mypageBtn) mypageBtn.style.display = 'none';
@@ -380,12 +391,8 @@
             if (logoutBtn) logoutBtn.style.display = 'none';
         }
     }
-
-    // 페이지 로드 시 헤더 업데이트
-    document.addEventListener('DOMContentLoaded', function() {
-        updateHeaderForLogin();
-    });
 </script>
+
 
 <!-- 푸터 -->
 <footer>
