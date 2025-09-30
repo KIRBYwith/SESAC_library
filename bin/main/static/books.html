@@ -8,7 +8,7 @@
     <script src="/js/numberFormatter.js?v=20250118update"></script>
     <style>
         body {
-            font-family: 'Georgia', 'Times New Roman', 'Apple SD Gothic Neo', 'Noto Sans KR', serif;
+            font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
             background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
             margin: 0;
             padding: 0;
@@ -27,10 +27,13 @@
             margin: 0 1rem;
             text-decoration: none;
             color: var(--text-primary);
-            font-weight: bold;
+            font-weight: 600;
             background: rgba(255, 255, 255, 0.7);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            padding: 0.8rem 1.8rem;
+            border-radius: 25px;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .main-container {
             max-width: 100%;

@@ -447,12 +447,6 @@
                 </div>
             </div>
 
-            <!-- 이름 -->
-            <div class="form-group">
-                <label for="name" class="form-label">이름<span class="required">*</span></label>
-                <input type="text" id="name" name="name" class="form-input"
-                       placeholder="실명을 입력하세요" required>
-            </div>
 
             <!-- 이메일 -->
             <div class="form-group">
@@ -692,6 +686,8 @@
         const middle = document.getElementById('phoneMiddle').value;
         const last = document.getElementById('phoneLast').value;
 
+        // 모든 필드가 입력되었을 때만 휴대폰 번호 반환, 아니면 null
+        if (!middle || !last) return null;
         return `${prefix}-${middle}-${last}`;
     }
 
@@ -700,6 +696,8 @@
         const basicAddress = document.getElementById('basicAddress').value;
         const detailAddress = document.getElementById('detailAddress').value;
 
+        // 우편번호와 기본주소가 모두 입력되었을 때만 주소 반환, 아니면 null
+        if (!zipcode || !basicAddress) return null;
         return `(${zipcode}) ${basicAddress} ${detailAddress}`.trim();
     }
 
@@ -747,7 +745,7 @@
             const userData = {
                 username: document.getElementById('userId').value,
                 password: document.getElementById('password').value,
-                name: document.getElementById('name').value,
+                name: document.getElementById('userId').value,
                 email: getFullEmail(),
                 phone: getFullPhone() || null,
                 addr: getFullAddress() || null

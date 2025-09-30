@@ -8,7 +8,6 @@
     <script src="/js/numberFormatter.js?v=20250118update"></script>
     <style>
         body {
-            font-family: 'Georgia', 'Times New Roman', 'Apple SD Gothic Neo', 'Noto Sans KR', serif;
             background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
             margin: 0;
             padding: 0;
@@ -22,15 +21,6 @@
             top: 0 !important;
             z-index: 1000 !important;
             border-bottom: 3px solid rgba(212, 175, 55, 0.3) !important;
-        }
-        nav a {
-            margin: 0 1rem;
-            text-decoration: none;
-            color: var(--text-primary);
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
         }
         .main-container {
             max-width: 100%;
@@ -609,7 +599,8 @@
             const statusClass = bookStatus === '대출가능' ? 'available' : 'borrowed';
 
             div.innerHTML = `
-                <img src="../img/${book.id}.jpg" alt="${book.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE0MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNDAiIGhlaWdodD0iMTgwIiBmaWxsPSIjRjBGMEYwIi8+Cjx0ZXh0IHg9IjcwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7snbTslYQg7Yq567OE7J207J6I7J20PC90ZXh0Pgo8L3N2Zz4K'">
+                <img src="../img/${book.id}.jpg" alt="${book.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTgwIj4KICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI0YwRjBGMCIvPgogIDx0ZXh0IHg9IjcwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4KICAgIE5PIElNQUdFCiAgPC90ZXh0Pgo8L3N2Zz4='
+">
                 <h3>${book.title}</h3>
                 <p><strong>저자:</strong> ${book.author}</p>
                 <p><strong>출판사:</strong> ${book.publisher} (${book.year})</p>

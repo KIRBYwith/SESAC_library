@@ -9,7 +9,6 @@
 
     <style>
         body {
-            font-family: 'Georgia', 'Times New Roman', 'Apple SD Gothic Neo', 'Noto Sans KR', serif;
             background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
             min-height: 100vh;
             margin: 0;
@@ -136,9 +135,9 @@
 
     <div class="user-info">
         <div>
-            <p>이름: 홍길동</p>
-            <p>이메일: hong@example.com</p>
-            <p>총 대출 권수: <span id="totalBooks">0</span></p>
+            <p>아이디: <span id="userId">user123</span></p>
+            <p>이메일: <span id="userEmail">hong@example.com</span></p>
+            <p>내 포인트: <span id="userPoints">0</span></p>
         </div>
         <button class="btn-edit" onclick="editUserInfo()">회원정보 수정</button>
     </div>
@@ -186,13 +185,64 @@
         30: { title:"일본. 1 : 떠나기 전에", author:"심청보" },
     };
 
+    // 사용자 정보 로드 함수
+    async function loadUserInfo() {
+        try {
+            const response = await fetch('/api/auth/me', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+
+                // UI 업데이트
+                document.getElementById('userId').textContent = userData.username || '알 수 없음';
+                document.getElementById('userEmail').textContent = userData.email || '알 수 없음';
+                document.getElementById('userPoints').textContent = userData.point || 0;
+                pointsEl.textContent = userData.point || 0;
+
+                // localStorage에도 업데이트 (호환성을 위해)
+                const existingUser = JSON.parse(localStorage.getItem('user') || '{}');
+                const updatedUser = { ...existingUser, ...userData, points: userData.point };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+
+                return userData;
+            } else {
+                console.error('사용자 정보를 가져올 수 없습니다.');
+                // API 실패 시 로컬 스토리지에서 정보 사용
+                const user = JSON.parse(localStorage.getItem('user') || 'null');
+                if (user) {
+                    document.getElementById('userId').textContent = user.username || '알 수 없음';
+                    document.getElementById('userEmail').textContent = user.email || '알 수 없음';
+                    document.getElementById('userPoints').textContent = user.points || user.point || 0;
+                    pointsEl.textContent = user.points || user.point || 0;
+                }
+                return user;
+            }
+        } catch (error) {
+            console.error('사용자 정보 로드 중 오류:', error);
+            // API 실패 시 로컬 스토리지에서 정보 사용
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (user) {
+                document.getElementById('userId').textContent = user.username || '알 수 없음';
+                document.getElementById('userEmail').textContent = user.email || '알 수 없음';
+                document.getElementById('userPoints').textContent = user.points || user.point || 0;
+                pointsEl.textContent = user.points || user.point || 0;
+            }
+            return user;
+        }
+    }
+
     function renderTable() {
         const user = JSON.parse(localStorage.getItem('user') || 'null');
         const state = JSON.parse(localStorage.getItem('bookStatus') || '{}');
         const loanIds = user?.loans || [];
         bookTableBody.innerHTML = '';
-        totalBooksSpan.textContent = loanIds.length;
-        pointsEl.textContent = user?.points || 0;
+        // 총 대출 권수 업데이트는 제거 (더 이상 사용하지 않음)
 
         loanIds.forEach((id) => {
             const info = BOOKS[id] || { title: `도서#${id}`, author: '' };
@@ -244,7 +294,10 @@
         window.location.href = 'editUser.html';
     }
 
-    renderTable();
+    // 페이지 로드 시 사용자 정보를 먼저 로드한 후 테이블 렌더링
+    loadUserInfo().then(() => {
+        renderTable();
+    });
 
     // 로그인 상태 관리
     document.addEventListener('DOMContentLoaded', function () {
