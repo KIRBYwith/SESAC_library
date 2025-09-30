@@ -1,758 +1,889 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>도서 목록 - KIRBY 도서관</title>
-    <link rel="stylesheet" href="/css/style.css?v=20250118borrow">
-    <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
+    <link rel="stylesheet" href="/css/style.css?v=20250118borrow" />
+    <link rel="stylesheet" href="/css/events-footer.css?v=20250118events" />
     <script src="/js/numberFormatter.js?v=20250118update"></script>
     <style>
-        body {
-            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background: linear-gradient(135deg, rgba(26, 35, 126, 0.9), rgba(212, 175, 55, 0.9)) !important;
-            backdrop-filter: blur(20px) !important;
-            box-shadow: 0 8px 32px rgba(26, 35, 126, 0.3) !important;
-            padding: 1.5rem 0 !important;
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 1000 !important;
-            border-bottom: 3px solid rgba(212, 175, 55, 0.3) !important;
-        }
+      body {
+        background: linear-gradient(
+          135deg,
+          var(--primary-navy) 0%,
+          var(--deep-navy) 30%,
+          var(--star-gold) 70%,
+          var(--pale-gold) 100%
+        );
+        margin: 0;
+        padding: 0;
+      }
+      header {
+        background: linear-gradient(
+          135deg,
+          rgba(26, 35, 126, 0.9),
+          rgba(212, 175, 55, 0.9)
+        ) !important;
+        backdrop-filter: blur(20px) !important;
+        box-shadow: 0 8px 32px rgba(26, 35, 126, 0.3) !important;
+        padding: 1.5rem 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        border-bottom: 3px solid rgba(212, 175, 55, 0.3) !important;
+      }
+      .main-container {
+        max-width: 100%;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      /* 노트북/데스크톱 화면에서 여백 조정 */
+      @media (min-width: 1024px) {
         .main-container {
-            max-width: 100%;
-            margin: 2rem auto;
-            padding: 0 1rem;
+          padding: 0 10%;
         }
-        
-        .page-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 20px;
-            border: 2px solid rgba(255, 179, 217, 0.2);
-        }
-        
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-navy);
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, var(--star-gold), var(--accent-amber));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .page-subtitle {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-        
-        .search-section {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 2px solid rgba(255, 179, 217, 0.2);
-            box-shadow: 0 10px 30px rgba(255, 179, 217, 0.1);
-        }
-        
-        .search-box {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            align-items: center;
-        }
-        
-        .search-box input {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            border: 2px solid rgba(255, 179, 217, 0.3);
-            border-radius: 15px;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            transition: all 0.3s ease;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--star-gold);
-            box-shadow: 0 0 20px rgba(255, 179, 217, 0.3);
-        }
-        
-        .search-btn {
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, var(--star-gold), var(--accent-amber));
-            color: var(--white);
-            border: none;
-            border-radius: 15px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(255, 179, 217, 0.4);
-        }
-        
-        .filter-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .filter-group label {
-            font-weight: 600;
-            color: var(--primary-navy);
-            font-size: 0.9rem;
-        }
-        
-        .filter-group select {
-            padding: 0.8rem 1rem;
-            border: 2px solid rgba(255, 179, 217, 0.3);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-group select:focus {
-            outline: none;
-            border-color: var(--star-gold);
-            box-shadow: 0 0 15px rgba(255, 179, 217, 0.2);
-        }
-        .book-stats {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            border: 2px solid rgba(255, 179, 217, 0.2);
-        }
-        
-        .stat-item {
-            text-align: center;
-            padding: 1rem;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.6);
-            border: 2px solid rgba(255, 179, 217, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .stat-item:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.8);
-            border-color: var(--star-gold);
-        }
-        
-        .stat-number {
-            display: block;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-navy);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-        
-        .book-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .book-item {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 25px rgba(255, 179, 217, 0.2);
-            border: 2px solid rgba(255, 179, 217, 0.2);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .book-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--star-gold), var(--accent-amber));
-        }
-        
-        .book-item:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 40px rgba(255, 179, 217, 0.3);
-            border-color: var(--star-gold);
-        }
-        .book-item img {
-            width: 140px;
-            height: 180px;
-            object-fit: cover;
-            margin-bottom: 1.5rem;
-            border-radius: 12px;
-            background: #f0f0f0;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-        }
-        
-        .book-item:hover img {
-            transform: scale(1.05);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .book-item h3 {
-            font-size: 1.1rem;
-            margin: 0.5rem 0;
-            color: var(--primary-navy);
-            text-align: center;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-        
-        .book-item p {
-            font-size: 0.9rem;
-            margin: 0.3rem 0;
-            text-align: center;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-        
-        .book-item .book-status {
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin: 0.5rem 0;
-        }
-        
-        .book-status.available {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4caf50;
-            border: 1px solid rgba(76, 175, 80, 0.3);
-        }
-        
-        .book-status.borrowed {
-            background: rgba(244, 67, 54, 0.1);
-            color: #f44336;
-            border: 1px solid rgba(244, 67, 54, 0.3);
-        }
-        
-        .book-item button {
-            margin-top: 1rem;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        
-        .borrow-btn {
-            background: linear-gradient(135deg, var(--star-gold), var(--accent-amber));
-            color: var(--white);
-            box-shadow: 0 5px 15px rgba(255, 179, 217, 0.3);
-        }
-        
-        .borrow-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 179, 217, 0.4);
-        }
-        
-        .disabled-btn {
-            background: #e0e0e0;
-            color: #9e9e9e;
-            cursor: not-allowed;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 0.8rem;
-            margin-top: 1rem;
-            justify-content: center;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 2rem;
-        }
-        
-        .pagination button {
-            padding: 0.8rem 1.2rem;
-            border: 2px solid rgba(255, 179, 217, 0.3);
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-        
-        .pagination button:hover {
-            background: var(--star-gold);
-            color: var(--white);
-            border-color: var(--star-gold);
-        }
-        
-        .pagination button.active {
-            background: var(--star-gold);
-            color: var(--white);
-            border-color: var(--star-gold);
-        }
+      }
+
+      .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        border: 2px solid rgba(255, 179, 217, 0.2);
+      }
+
+      .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-navy);
+        margin-bottom: 0.5rem;
+        background: linear-gradient(
+          45deg,
+          var(--star-gold),
+          var(--accent-amber)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .page-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0;
+      }
+
+      .search-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid rgba(255, 179, 217, 0.2);
+        box-shadow: 0 10px 30px rgba(255, 179, 217, 0.1);
+      }
+
+      .search-box {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        align-items: center;
+      }
+
+      .search-box input {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        border: 2px solid rgba(255, 179, 217, 0.3);
+        border-radius: 15px;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: var(--star-gold);
+        box-shadow: 0 0 20px rgba(255, 179, 217, 0.3);
+      }
+
+      .search-btn {
+        padding: 1rem 2rem;
+        background: linear-gradient(
+          135deg,
+          var(--star-gold),
+          var(--accent-amber)
+        );
+        color: var(--white);
+        border: none;
+        border-radius: 15px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(255, 179, 217, 0.4);
+      }
+
+      .filter-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .filter-group label {
+        font-weight: 600;
+        color: var(--primary-navy);
+        font-size: 0.9rem;
+      }
+
+      .filter-group select {
+        padding: 0.8rem 1rem;
+        border: 2px solid rgba(255, 179, 217, 0.3);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+      }
+
+      .filter-group select:focus {
+        outline: none;
+        border-color: var(--star-gold);
+        box-shadow: 0 0 15px rgba(255, 179, 217, 0.2);
+      }
+      .book-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        border: 2px solid rgba(255, 179, 217, 0.2);
+      }
+
+      .stat-item {
+        text-align: center;
+        padding: 1rem;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 2px solid rgba(255, 179, 217, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .stat-item:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.8);
+        border-color: var(--star-gold);
+      }
+
+      .stat-number {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-navy);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .book-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      .book-item {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 1.5rem 1.5rem 2rem 1.5rem;
+        box-shadow: 0 8px 25px rgba(255, 179, 217, 0.2);
+        border: 2px solid rgba(255, 179, 217, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible;
+        min-height: 480px;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+
+      .book-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--star-gold),
+          var(--accent-amber)
+        );
+      }
+
+      .book-item:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(255, 179, 217, 0.3);
+        border-color: var(--star-gold);
+      }
+      .book-item img {
+        width: 140px;
+        height: 180px;
+        object-fit: cover;
+        margin-bottom: 1.5rem;
+        border-radius: 12px;
+        background: #f0f0f0;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+      }
+
+      .book-item:hover img {
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .book-item h3 {
+        font-size: 1.1rem;
+        margin: 0.5rem 0;
+        color: var(--primary-navy);
+        text-align: center;
+        font-weight: 700;
+        line-height: 1.3;
+        height: 2.6rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .book-item p {
+        font-size: 0.9rem;
+        margin: 0.3rem 0;
+        text-align: center;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+
+      .book-item .book-status {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 0.5rem 0;
+      }
+
+      .book-status.available {
+        background: rgba(76, 175, 80, 0.1);
+        color: #4caf50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+      }
+
+      .book-status.borrowed {
+        background: rgba(244, 67, 54, 0.1);
+        color: #f44336;
+        border: 1px solid rgba(244, 67, 54, 0.3);
+      }
+
+      .book-item button {
+        margin-top: 1rem;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .borrow-btn {
+        background: linear-gradient(
+          135deg,
+          var(--star-gold),
+          var(--accent-amber)
+        );
+        color: var(--white);
+        box-shadow: 0 5px 15px rgba(255, 179, 217, 0.3);
+      }
+
+      .borrow-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 179, 217, 0.4);
+      }
+
+      .disabled-btn {
+        background: #e0e0e0;
+        color: #9e9e9e;
+        cursor: not-allowed;
+      }
+
+      .book-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: auto;
+        justify-content: center;
+        width: 100%;
+        padding-top: 1rem;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+      }
+
+      .pagination button {
+        padding: 0.8rem 1.2rem;
+        border: 2px solid rgba(255, 179, 217, 0.3);
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+      }
+
+      .pagination button:hover {
+        background: var(--star-gold);
+        color: var(--white);
+        border-color: var(--star-gold);
+      }
+
+      .pagination button.active {
+        background: var(--star-gold);
+        color: var(--white);
+        border-color: var(--star-gold);
+      }
     </style>
-</head>
-<body>
-<header>
-    <h1><a href="index.html" class="logo-link">📖KIRBY 도서관📖</a></h1>
-    <nav>
+  </head>
+  <body>
+    <header>
+      <h1><a href="index.html" class="logo-link">📖KIRBY 도서관📖</a></h1>
+      <nav>
         <a href="index.html">홈</a>
         <a href="signup.html" id="signupBtn">회원가입</a>
         <a href="books.html">도서목록</a>
         <a href="board.html">게시판</a>
         <a href="login.html" id="loginBtn">로그인</a>
-        <a href="mypage.html" id="mypageBtn" style="display:none;">마이페이지</a>
-        <a href="admin.html" id="adminBtn" style="display:none; background-color: #ff6b6b; color: white; padding: 5px 10px; border-radius: 5px;">관리자페이지</a>
-        <a href="#" id="logoutBtn" onclick="logout()" style="display:none;">로그아웃</a>
-    </nav>
-</header>
+        <a href="mypage.html" id="mypageBtn" style="display: none"
+          >마이페이지</a
+        >
+        <a
+          href="admin.html"
+          id="adminBtn"
+          style="
+            display: none;
+            background-color: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+          "
+          >관리자페이지</a
+        >
+        <a href="#" id="logoutBtn" onclick="logout()" style="display: none"
+          >로그아웃</a
+        >
+      </nav>
+    </header>
 
-<div class="main-container">
-    <div class="page-header">
+    <div class="main-container">
+      <div class="page-header">
         <h2 class="page-title">📚 도서 목록</h2>
-        <p class="page-subtitle">KIRBY 도서관의 모든 도서를 검색하고 대출하세요</p>
-    </div>
+        <p class="page-subtitle">
+          KIRBY 도서관의 모든 도서를 검색하고 대출하세요
+        </p>
+      </div>
 
-    <div class="search-section">
+      <div class="search-section">
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="도서명, 저자명, ISBN으로 검색하세요">
-            <button class="search-btn">
-                <span class="search-icon">🔍</span>
-                <span>검색</span>
-            </button>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="도서명, 저자명, ISBN으로 검색하세요"
+          />
+          <button class="search-btn">
+            <span class="search-icon">🔍</span>
+            <span>검색</span>
+          </button>
         </div>
-        
+
         <div class="filter-section">
-            <div class="filter-group">
-                <label for="categoryFilter">카테고리</label>
-                <select id="categoryFilter">
-                    <option value="">전체 카테고리</option>
-                    <option value="철학">철학 (100-199)</option>
-                    <option value="종교">종교 (200-299)</option>
-                    <option value="사회과학">사회과학 (300-399)</option>
-                    <option value="순수과학">순수과학 (400-499)</option>
-                    <option value="기술과학">기술과학 (500-599)</option>
-                    <option value="예술">예술 (600-699)</option>
-                    <option value="어학">어학 (700-799)</option>
-                    <option value="문학">문학 (800-899)</option>
-                    <option value="역사">역사 (900-999)</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="statusFilter">대출 상태</label>
-                <select id="statusFilter">
-                    <option value="">전체</option>
-                    <option value="available">대출 가능</option>
-                    <option value="borrowed">대출 중</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="sortFilter">정렬</label>
-                <select id="sortFilter">
-                    <option value="title">제목순</option>
-                    <option value="author">저자순</option>
-                    <option value="year">출판년도순</option>
-                    <option value="popular">인기순</option>
-                </select>
-            </div>
+          <div class="filter-group">
+            <label for="categoryFilter">카테고리</label>
+            <select id="categoryFilter">
+              <option value="">전체 카테고리</option>
+              <option value="철학">철학 (100-199)</option>
+              <option value="종교">종교 (200-299)</option>
+              <option value="사회과학">사회과학 (300-399)</option>
+              <option value="순수과학">순수과학 (400-499)</option>
+              <option value="기술과학">기술과학 (500-599)</option>
+              <option value="예술">예술 (600-699)</option>
+              <option value="어학">어학 (700-799)</option>
+              <option value="문학">문학 (800-899)</option>
+              <option value="역사">역사 (900-999)</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="statusFilter">대출 상태</label>
+            <select id="statusFilter">
+              <option value="">전체</option>
+              <option value="available">대출 가능</option>
+              <option value="borrowed">대출 중</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="sortFilter">정렬</label>
+            <select id="sortFilter">
+              <option value="title">제목순</option>
+              <option value="author">저자순</option>
+              <option value="year">출판년도순</option>
+              <option value="popular">인기순</option>
+            </select>
+          </div>
         </div>
+      </div>
+
+      <div class="book-stats">
+        <div class="stat-item">
+          <span class="stat-number" id="totalBooks">0</span>
+          <span class="stat-label">전체 도서</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="availableBooks">0</span>
+          <span class="stat-label">대출 가능</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="borrowedBooks">0</span>
+          <span class="stat-label">대출 중</span>
+        </div>
+      </div>
+
+      <div class="book-list" id="bookList"></div>
+
+      <div class="pagination" id="pagination"></div>
     </div>
 
-    <div class="book-stats">
-        <div class="stat-item">
-            <span class="stat-number" id="totalBooks">0</span>
-            <span class="stat-label">전체 도서</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-number" id="availableBooks">0</span>
-            <span class="stat-label">대출 가능</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-number" id="borrowedBooks">0</span>
-            <span class="stat-label">대출 중</span>
-        </div>
-    </div>
+    <script>
+      // state helper
+      const s = document.createElement("script");
+      s.src = "/js/state.js";
+      document.head.appendChild(s);
 
-    <div class="book-list" id="bookList"></div>
-    
-    <div class="pagination" id="pagination"></div>
-</div>
-
-<script>
-    // state helper
-    const s = document.createElement('script');
-    s.src = '/js/state.js';
-    document.head.appendChild(s);
-
-    // 로그아웃 기능
-    function logout() {
-        if (confirm('정말 로그아웃 하시겠습니까?')) {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('user');
-            alert('로그아웃 되었습니다.');
-            location.reload();
+      // 로그아웃 기능
+      function logout() {
+        if (confirm("정말 로그아웃 하시겠습니까?")) {
+          localStorage.removeItem("isLoggedIn");
+          localStorage.removeItem("user");
+          alert("로그아웃 되었습니다.");
+          location.reload();
         }
-    }
+      }
 
-    // 로그인 상태 체크 및 헤더 업데이트
-    function updateHeaderForLogin() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
+      // 로그인 상태 체크 및 헤더 업데이트
+      function updateHeaderForLogin() {
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+        const loginBtn = document.getElementById("loginBtn");
+        const signupBtn = document.getElementById("signupBtn");
+        const mypageBtn = document.getElementById("mypageBtn");
+        const adminBtn = document.getElementById("adminBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
 
         if (isLoggedIn) {
-            // 로그인된 상태
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-            
-            // 관리자 체크
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'ADMIN' && adminBtn) {
-                adminBtn.style.display = 'inline-block';
-            }
-        } else {
-            // 로그인되지 않은 상태
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (signupBtn) signupBtn.style.display = 'inline-block';
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-        }
-    }
+          // 로그인된 상태
+          if (loginBtn) loginBtn.style.display = "none";
+          if (signupBtn) signupBtn.style.display = "none";
+          if (mypageBtn) mypageBtn.style.display = "inline-block";
+          if (logoutBtn) logoutBtn.style.display = "inline-block";
 
-    // 로그인 상태 관리
-    document.addEventListener('DOMContentLoaded', function () {
+          // 관리자 체크
+          const user = JSON.parse(localStorage.getItem("user") || "{}");
+          if (user.role === "ADMIN" && adminBtn) {
+            adminBtn.style.display = "inline-block";
+          }
+        } else {
+          // 로그인되지 않은 상태
+          if (loginBtn) loginBtn.style.display = "inline-block";
+          if (signupBtn) signupBtn.style.display = "inline-block";
+          if (mypageBtn) mypageBtn.style.display = "none";
+          if (adminBtn) adminBtn.style.display = "none";
+          if (logoutBtn) logoutBtn.style.display = "none";
+        }
+      }
+
+      // 로그인 상태 관리
+      document.addEventListener("DOMContentLoaded", function () {
         // 헤더 업데이트
         updateHeaderForLogin();
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+        const user = JSON.parse(localStorage.getItem("user") || "null");
 
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
+        const loginBtn = document.getElementById("loginBtn");
+        const signupBtn = document.getElementById("signupBtn");
+        const mypageBtn = document.getElementById("mypageBtn");
+        const adminBtn = document.getElementById("adminBtn");
 
         if (isLoggedIn && user) {
-            // 로그인 상태면 로그인 → 로그아웃으로 바꿈
-            loginBtn.textContent = '로그아웃';
-            loginBtn.href = '#';
-            loginBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('user');
-                alert('로그아웃 되었습니다.');
-                window.location.reload();
-            });
+          // 로그인 상태면 로그인 → 로그아웃으로 바꿈
+          loginBtn.textContent = "로그아웃";
+          loginBtn.href = "#";
+          loginBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("user");
+            alert("로그아웃 되었습니다.");
+            window.location.reload();
+          });
 
-            // 회원가입 버튼 숨기기
-            if (signupBtn) signupBtn.style.display = 'none';
+          // 회원가입 버튼 숨기기
+          if (signupBtn) signupBtn.style.display = "none";
 
-            // 마이페이지 버튼 보이기
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
+          // 마이페이지 버튼 보이기
+          if (mypageBtn) mypageBtn.style.display = "inline-block";
 
-            // 관리자 계정인 경우 관리자페이지 버튼 보이기
-            if (user.role === 'ADMIN') {
-                if (adminBtn) adminBtn.style.display = 'inline-block';
-            }
+          // 관리자 계정인 경우 관리자페이지 버튼 보이기
+          if (user.role === "ADMIN") {
+            if (adminBtn) adminBtn.style.display = "inline-block";
+          }
         } else {
-            // 로그인 상태가 아니면 로그인 버튼을 login.html로 연결
-            if (loginBtn) {
-                loginBtn.href = 'login.html';
-            }
-            
-            // 마이페이지, 관리자페이지 버튼 숨기기
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
+          // 로그인 상태가 아니면 로그인 버튼을 login.html로 연결
+          if (loginBtn) {
+            loginBtn.href = "login.html";
+          }
+
+          // 마이페이지, 관리자페이지 버튼 숨기기
+          if (mypageBtn) mypageBtn.style.display = "none";
+          if (adminBtn) adminBtn.style.display = "none";
         }
-    });
+      });
 
-    // CSV 데이터 → JS 배열
-    const books = [
-        { id:1, title:"달콤한 나의 도시", author:"정이현", publisher:"문학과 지성사", year:"2007", code:"813.6 정398ㄷ" },
-        { id:2, title:"1리터의 눈물", author:"키토아야", publisher:"이덴슬리벨", year:"2011", code:"836 키673ㅇ" },
-        { id:3, title:"청소부 밥", author:"홉킨스, 토드", publisher:"위즈덤하우스", year:"2010", code:"325.04 토622ㅊ" },
-        { id:4, title:"마시멜로 이야기", author:"포사다, 호아킴 데", publisher:"한국경제신문", year:"2010", code:"325.04 호397ㅁ" },
-        { id:6, title:"퀴즈 쇼", author:"김영하", publisher:"문학동네", year:"2008", code:"813.6 김687ㅋ" },
-        { id:20, title:"재미있는 영양이야기", author:"김현숙", publisher:"교문사", year:"2009", code:"594.1 김953ㅈ" },
-        { id:30, title:"일본. 1 : 떠나기 전에", author:"심청보", publisher:"삼성출판사", year:"2011", code:"981.302 심956ㅇ" }
-        // 👉 실제로는 네 CSV 전체 데이터를 여기에 넣으면 됨
-    ];
+      // 책 데이터를 저장할 변수
+      let books = [];
 
-    // 카테고리 매핑 함수
-    function getCategory(code) {
-        const num = parseInt(code);
-        if (num >= 900) return "역사";
-        if (num >= 800) return "문학";
-        if (num >= 700) return "어학";
-        if (num >= 600) return "예술";
-        if (num >= 500) return "기술과학";
-        if (num >= 400) return "순수과학";
-        if (num >= 300) return "사회과학";
-        if (num >= 200) return "종교";
-        if (num >= 100) return "철학";
-        return "기타";
-    }
+      // 카테고리 매핑 함수
+      function getCategory(categoryId) {
+        const categoryMap = {
+          1: "철학",
+          2: "종교",
+          3: "사회과학",
+          4: "순수과학",
+          5: "기술과학",
+          6: "예술",
+          7: "어학",
+          8: "문학",
+          9: "역사",
+        };
+        return categoryMap[categoryId] || "기타";
+      }
 
-    // 상태 보전: 저장소 기준으로 상태 결정
-    books.forEach(book => {
-        book.category = getCategory(book.code);
-    });
+      // API에서 책 목록을 가져오는 함수
+      async function fetchBooks() {
+        try {
+          const response = await fetch("/api/books");
+          if (response.ok) {
+            const booksData = await response.json();
+            books = booksData.map((book) => ({
+              id: book.bookId,
+              title: book.title,
+              author: book.author,
+              publisher: book.publisher,
+              year: book.publishDate ? book.publishDate.split("-")[0] : "",
+              code: book.callNumber,
+              category: getCategory(book.categoryId),
+              bookCopies: book.bookCopies,
+            }));
+            renderBooks();
+            updateStats();
+          } else {
+            console.error("Failed to fetch books");
+            // 실패 시 빈 배열로 설정
+            books = [];
+            renderBooks();
+            updateStats();
+          }
+        } catch (error) {
+          console.error("Error fetching books:", error);
+          books = [];
+          renderBooks();
+          updateStats();
+        }
+      }
 
-    const bookList = document.getElementById('bookList');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const searchInput = document.getElementById('searchInput');
+      const bookList = document.getElementById("bookList");
+      const categoryFilter = document.getElementById("categoryFilter");
+      const searchInput = document.getElementById("searchInput");
 
-    function updateStats() {
-        const state = (window.State && State.getBookState()) || {};
+      function updateStats() {
         const totalBooks = books.length;
-        const availableBooks = books.filter(book => (state[book.id]?.status) !== '대출중').length;
+        const availableBooks = books.filter(
+          (book) => book.bookCopies >= 1
+        ).length;
         const borrowedBooks = totalBooks - availableBooks;
-        
-        document.getElementById('totalBooks').textContent = totalBooks;
-        document.getElementById('availableBooks').textContent = availableBooks;
-        document.getElementById('borrowedBooks').textContent = borrowedBooks;
-    }
 
-    function renderBooks() {
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const state = (window.State && State.getBookState()) || {};
+        document.getElementById("totalBooks").textContent = totalBooks;
+        document.getElementById("availableBooks").textContent = availableBooks;
+        document.getElementById("borrowedBooks").textContent = borrowedBooks;
+      }
+
+      function renderBooks() {
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
         const category = categoryFilter.value;
-        const status = document.getElementById('statusFilter').value;
+        const status = document.getElementById("statusFilter").value;
         const search = searchInput.value.toLowerCase();
-        bookList.innerHTML = '';
+        bookList.innerHTML = "";
 
-        let filteredBooks = books.filter(b => {
-            const categoryMatch = category === "" || b.category === category;
-            const searchMatch = b.title.toLowerCase().includes(search) || b.author.toLowerCase().includes(search);
-            const statusMatch = status === "" || 
-                (status === "available" && (state[b.id]?.status) !== '대출중') ||
-                (status === "borrowed" && (state[b.id]?.status) === '대출중');
-            
-            return categoryMatch && searchMatch && statusMatch;
+        let filteredBooks = books.filter((b) => {
+          const categoryMatch = category === "" || b.category === category;
+          const searchMatch =
+            b.title.toLowerCase().includes(search) ||
+            b.author.toLowerCase().includes(search);
+          const statusMatch =
+            status === "" ||
+            (status === "available" && b.bookCopies >= 1) ||
+            (status === "borrowed" && b.bookCopies === 0);
+
+          return categoryMatch && searchMatch && statusMatch;
         });
 
         // 정렬
-        const sortBy = document.getElementById('sortFilter').value;
+        const sortBy = document.getElementById("sortFilter").value;
         filteredBooks.sort((a, b) => {
-            switch(sortBy) {
-                case 'title': return a.title.localeCompare(b.title);
-                case 'author': return a.author.localeCompare(b.author);
-                case 'year': return b.year - a.year;
-                case 'popular': return Math.random() - 0.5; // 임시로 랜덤
-                default: return 0;
-            }
+          switch (sortBy) {
+            case "title":
+              return a.title.localeCompare(b.title);
+            case "author":
+              return a.author.localeCompare(b.author);
+            case "year":
+              return b.year - a.year;
+            case "popular":
+              return Math.random() - 0.5; // 임시로 랜덤
+            default:
+              return 0;
+          }
         });
 
-        filteredBooks.forEach(book => {
-            const div = document.createElement('div');
-            div.className = "book-item";
+        filteredBooks.forEach((book) => {
+          const div = document.createElement("div");
+          div.className = "book-item";
 
-            const bookStatus = (state[book.id]?.status) || '대출가능';
-            const statusClass = bookStatus === '대출가능' ? 'available' : 'borrowed';
+          const isAvailable = book.bookCopies >= 1;
+          const bookStatus = isAvailable ? "대출가능" : "대출중";
+          const statusClass = isAvailable ? "available" : "borrowed";
 
-            div.innerHTML = `
-                <img src="../img/${book.id}.jpg" alt="${book.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTgwIj4KICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI0YwRjBGMCIvPgogIDx0ZXh0IHg9IjcwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4KICAgIE5PIElNQUdFCiAgPC90ZXh0Pgo8L3N2Zz4='
-">
-                <h3>${book.title}</h3>
-                <p><strong>저자:</strong> ${book.author}</p>
-                <p><strong>출판사:</strong> ${book.publisher} (${book.year})</p>
-                <p><strong>카테고리:</strong> ${book.category}</p>
-                <div class="book-status ${statusClass}">${bookStatus}</div>
+          div.innerHTML = `
+                <div class="book-content">
+                    <img src="../img/${book.id}.jpg" alt="${book.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDAiIGhlaWdodD0iMTgwIj4KICA8cmVjdCB3aWR0aD0iMTQwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI0YwRjBGMCIvPgogIDx0ZXh0IHg9IjcwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4KICAgIE5PIElNQUdFCiAgPC90ZXh0Pgo8L3N2Zz4='
+    ">
+                    <h3>${book.title}</h3>
+                    <p><strong>저자:</strong> ${book.author}</p>
+                    <p><strong>출판사:</strong> ${book.publisher} (${book.year})</p>
+                    <p><strong>카테고리:</strong> ${book.category}</p>
+                    <div class="book-status ${statusClass}">${bookStatus}</div>
+                </div>
             `;
 
-            const buttonGroup = document.createElement('div');
-            buttonGroup.className = 'button-group';
+          const buttonGroup = document.createElement("div");
+          buttonGroup.className = "button-group";
 
-            if (bookStatus === "대출가능") {
-                const btn = document.createElement('button');
-                btn.className = "borrow-btn";
-                btn.textContent = "📚 대출하기";
-                btn.addEventListener('click', () => {
-                    if (!isLoggedIn) {
-                        alert("로그인 후 이용 가능합니다.");
-                        return;
-                    }
-                    // 대출 처리
-                    const u = JSON.parse(localStorage.getItem('user'));
-                    const st = State.getBookState();
-                    if ((st[book.id]?.status) === '대출중') {
-                        alert('이미 대출중인 도서입니다.');
-                        renderBooks();
-                        return;
-                    }
-                    State.setBookLoan(book.id, u.email);
-                    u.loans = Array.from(new Set([...(u.loans||[]), book.id]));
-                    localStorage.setItem('user', JSON.stringify(u));
-                    State.awardPoints(u, 10);
-                    alert('대출 완료! (+10포인트)');
-                    renderBooks();
-                    updateStats();
+          if (book.bookCopies >= 1) {
+            // 대출 가능 상태: 대출하기 버튼만 표시
+            const btn = document.createElement("button");
+            btn.className = "borrow-btn";
+            btn.textContent = "📚 대출하기";
+            btn.addEventListener("click", async () => {
+              if (!isLoggedIn) {
+                alert("로그인 후 이용 가능합니다.");
+                return;
+              }
+
+              const user = JSON.parse(localStorage.getItem("user"));
+              if (!user || !user.userId) {
+                alert("사용자 정보를 찾을 수 없습니다.");
+                return;
+              }
+
+              try {
+                const response = await fetch(`/api/books/${book.id}/borrow`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                  },
+                  body: `userId=${user.userId}`,
                 });
-                buttonGroup.appendChild(btn);
-            } else {
-                // 대출중 상태: 대출하기 버튼을 비활성화로 표시
-                const disabled = document.createElement('button');
-                disabled.className = "disabled-btn";
-                disabled.textContent = "📚 대출불가";
-                disabled.disabled = true;
-                buttonGroup.appendChild(disabled);
 
-                // 예약하기 버튼 추가
-                const reserveBtn = document.createElement('button');
-                reserveBtn.className = "borrow-btn";
-                reserveBtn.textContent = "📋 예약하기";
-                reserveBtn.addEventListener('click', () => {
-                    if (!isLoggedIn) {
-                        alert('로그인 후 이용 가능합니다.');
-                        return;
-                    }
-                    // 예약 처리
-                    const u = JSON.parse(localStorage.getItem('user'));
-                    const st = State.getBookState();
+                const result = await response.json();
+                if (result.success) {
+                  alert(result.message);
+                  // 책 목록 다시 불러오기
+                  await fetchBooks();
+                } else {
+                  alert(result.message);
+                }
+              } catch (error) {
+                console.error("대출 처리 중 오류:", error);
+                alert("대출 처리 중 오류가 발생했습니다.");
+              }
+            });
+            buttonGroup.appendChild(btn);
+          } else {
+            // 대출중 상태 (개수가 0개): 예약하기 버튼만 표시 (노란색)
+            const reserveBtn = document.createElement("button");
+            reserveBtn.className = "reserve-btn";
+            reserveBtn.style.background =
+              "linear-gradient(135deg, #ffeb3b, #ffc107)";
+            reserveBtn.style.color = "#333";
+            reserveBtn.style.padding = "0.8rem 1.5rem";
+            reserveBtn.style.border = "none";
+            reserveBtn.style.borderRadius = "12px";
+            reserveBtn.style.cursor = "pointer";
+            reserveBtn.style.fontWeight = "600";
+            reserveBtn.style.fontSize = "0.9rem";
+            reserveBtn.style.transition = "all 0.3s ease";
+            reserveBtn.textContent = "📋 예약하기";
+            reserveBtn.addEventListener("click", async () => {
+              if (!isLoggedIn) {
+                alert("로그인 후 이용 가능합니다.");
+                return;
+              }
 
-                    // 이미 예약했는지 확인
-                    const reservations = st[book.id]?.reservations || [];
-                    if (reservations.includes(u.email)) {
-                        alert('이미 예약하신 도서입니다.');
-                        return;
-                    }
+              const user = JSON.parse(localStorage.getItem("user"));
+              if (!user || !user.userId) {
+                alert("사용자 정보를 찾을 수 없습니다.");
+                return;
+              }
 
-                    // 예약 추가
-                    State.addReservation(book.id, u.email);
-                    u.reservations = Array.from(new Set([...(u.reservations||[]), book.id]));
-                    localStorage.setItem('user', JSON.stringify(u));
-
-                    alert('예약이 완료되었습니다!');
-                    renderBooks();
+              try {
+                const response = await fetch(`/api/books/${book.id}/reserve`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                  },
+                  body: `userId=${user.userId}`,
                 });
-                buttonGroup.appendChild(reserveBtn);
-            }
 
-            div.appendChild(buttonGroup);
-            bookList.appendChild(div);
+                const result = await response.json();
+                if (result.success) {
+                  alert(
+                    `${result.message} (대기순번: ${result.reservationOrder}번)`
+                  );
+                } else {
+                  alert(result.message);
+                }
+              } catch (error) {
+                console.error("예약 처리 중 오류:", error);
+                alert("예약 처리 중 오류가 발생했습니다.");
+              }
+            });
+            buttonGroup.appendChild(reserveBtn);
+          }
+
+          div.appendChild(buttonGroup);
+          bookList.appendChild(div);
         });
-        
+
         updateStats();
-    }
+      }
 
-    categoryFilter.addEventListener('change', renderBooks);
-    document.getElementById('statusFilter').addEventListener('change', renderBooks);
-    document.getElementById('sortFilter').addEventListener('change', renderBooks);
-    searchInput.addEventListener('input', renderBooks);
-    document.querySelector('.search-btn').addEventListener('click', renderBooks);
+      categoryFilter.addEventListener("change", renderBooks);
+      document
+        .getElementById("statusFilter")
+        .addEventListener("change", renderBooks);
+      document
+        .getElementById("sortFilter")
+        .addEventListener("change", renderBooks);
+      searchInput.addEventListener("input", renderBooks);
+      document
+        .querySelector(".search-btn")
+        .addEventListener("click", renderBooks);
 
-    // 초기 보정: 책 상태 엔트리 생성
-    (function init() {
-        if (window.State) {
-            State.ensureBookState(books.map(b=>b.id));
-        }
-        renderBooks();
-    })();
-</script>
+      // 초기화: 페이지 로드시 책 목록 가져오기
+      (function init() {
+        fetchBooks();
+      })();
+    </script>
 
-<!-- 푸터 -->
-<footer>
-    <div class="footer-content">
+    <!-- 푸터 -->
+    <footer>
+      <div class="footer-content">
         <div class="footer-main">
-            <div class="footer-section">
-                <h4>📚 KIRBY 도서관</h4>
-                <p>지식과 꿈이 만나는 공간</p>
-                <div class="footer-contact">
-                    <p><strong>주소:</strong> 서울시 강남구 도서관로 123</p>
-                    <p><strong>전화:</strong> 02-1234-5678</p>
-                    <p><strong>이메일:</strong> info@kirbylibrary.kr</p>
-                </div>
+          <div class="footer-section">
+            <h4>📚 KIRBY 도서관</h4>
+            <p>지식과 꿈이 만나는 공간</p>
+            <div class="footer-contact">
+              <p><strong>주소:</strong> 서울시 강남구 도서관로 123</p>
+              <p><strong>전화:</strong> 02-1234-5678</p>
+              <p><strong>이메일:</strong> info@kirbylibrary.kr</p>
             </div>
-            <div class="footer-section">
-                <h4>🔗 빠른 링크</h4>
-                <ul>
-                    <li><a href="books.html">도서목록</a></li>
-                    <li><a href="board.html">게시판</a></li>
-                    <li><a href="login.html">로그인</a></li>
-                    <li><a href="signup.html">회원가입</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>📖 서비스</h4>
-                <ul>
-                    <li><a href="#">도서 대출</a></li>
-                    <li><a href="#">예약 서비스</a></li>
-                    <li><a href="#">독서 모임</a></li>
-                    <li><a href="#">문화 행사</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>📞 문의</h4>
-                <ul>
-                    <li><a href="#">자주 묻는 질문</a></li>
-                    <li><a href="#">이용 안내</a></li>
-                    <li><a href="#">개인정보처리방침</a></li>
-                    <li><a href="#">이용약관</a></li>
-                </ul>
-            </div>
+          </div>
+          <div class="footer-section">
+            <h4>🔗 빠른 링크</h4>
+            <ul>
+              <li><a href="books.html">도서목록</a></li>
+              <li><a href="board.html">게시판</a></li>
+              <li><a href="login.html">로그인</a></li>
+              <li><a href="signup.html">회원가입</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>📖 서비스</h4>
+            <ul>
+              <li><a href="#">도서 대출</a></li>
+              <li><a href="#">예약 서비스</a></li>
+              <li><a href="#">독서 모임</a></li>
+              <li><a href="#">문화 행사</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>📞 문의</h4>
+            <ul>
+              <li><a href="#">자주 묻는 질문</a></li>
+              <li><a href="#">이용 안내</a></li>
+              <li><a href="#">개인정보처리방침</a></li>
+              <li><a href="#">이용약관</a></li>
+            </ul>
+          </div>
         </div>
         <div class="footer-bottom">
-            <div class="footer-info">
-                <p>© 2025 KIRBY 도서관. All rights reserved.</p>
-                <p>사업자등록번호: 123-45-67890 | 대표: 김도서</p>
-            </div>
-            <div class="footer-social">
-                <a href="#" class="social-link">📘</a>
-                <a href="#" class="social-link">📷</a>
-                <a href="#" class="social-link">🐦</a>
-                <a href="#" class="social-link">📺</a>
-            </div>
+          <div class="footer-info">
+            <p>© 2025 KIRBY 도서관. All rights reserved.</p>
+            <p>사업자등록번호: 123-45-67890 | 대표: 김도서</p>
+          </div>
+          <div class="footer-social">
+            <a href="#" class="social-link">📘</a>
+            <a href="#" class="social-link">📷</a>
+            <a href="#" class="social-link">🐦</a>
+            <a href="#" class="social-link">📺</a>
+          </div>
         </div>
-    </div>
-</footer>
-
-</body>
+      </div>
+    </footer>
+  </body>
 </html>

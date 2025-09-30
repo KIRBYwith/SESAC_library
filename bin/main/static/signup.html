@@ -15,63 +15,10 @@
         }
 
         body {
-            font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
             background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
             min-height: 100vh;
             color: var(--text-primary);
             line-height: 1.6;
-        }
-
-        /* 헤더 오버라이드 - 통일된 스타일 사용 */
-        header {
-            background: linear-gradient(135deg, rgba(26, 35, 126, 0.9), rgba(212, 175, 55, 0.9)) !important;
-            backdrop-filter: blur(20px) !important;
-            box-shadow: 0 8px 32px rgba(26, 35, 126, 0.3) !important;
-            padding: 1.5rem 0 !important;
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 1000 !important;
-            border-bottom: 3px solid rgba(212, 175, 55, 0.3) !important;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-        }
-
-        .logo {
-            background: linear-gradient(45deg, var(--star-gold), var(--accent-amber)) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
-            background-clip: text !important;
-            font-size: 2rem;
-            font-weight: 800 !important;
-            text-decoration: none;
-            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)) !important;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-primary);
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.7);
-        }
-
-        .nav-links a:hover {
-            background: linear-gradient(45deg, var(--star-gold), var(--accent-amber));
-            color: var(--white);
         }
 
         /* 메인 컨테이너 */
@@ -79,6 +26,13 @@
             max-width: 100%;
             margin: 2rem auto;
             padding: 0 2rem;
+        }
+
+        /* 노트북/데스크톱 화면에서 여백 조정 */
+        @media (min-width: 1024px) {
+            .main-container {
+                padding: 0 20%;
+            }
         }
 
         .signup-card {

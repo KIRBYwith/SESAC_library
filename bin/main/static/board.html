@@ -16,7 +16,6 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
             min-height: 100vh;
             color: #333;
@@ -40,6 +39,13 @@
             max-width: 100%;
             margin: 2rem auto;
             padding: 0 2rem;
+        }
+
+        /* 노트북/데스크톱 화면에서 여백 조정 */
+        @media (min-width: 1024px) {
+            .container {
+                padding: 0 10%;
+            }
         }
 
         /* 게시판 카드 */
