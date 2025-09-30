@@ -31,10 +31,21 @@ public class BoardResponse {
         response.setCreatedAt(board.getCreatedAt());
         response.setViews(board.getViews());
 
+        /* 이전
         if (board.getFiles() != null && !board.getFiles().isEmpty()) {
             response.setFileUrls(board.getFiles().stream()
                     .map(BoardFile::getFileUrl)
                     .collect(Collectors.toList()));
+        }
+        */
+
+        // 수정
+        if (board.getFiles() != null) {
+            response.setFileUrls(board.getFiles().stream()
+                    .map(BoardFile::getFileUrl)
+                    .collect(Collectors.toList()));
+        } else {
+            response.setFileUrls(List.of()); // null 대신 빈 리스트
         }
 
         return response;

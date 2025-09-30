@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+// 다음도 추가
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 import java.time.LocalDateTime;
 
@@ -21,6 +24,8 @@ public class BoardFile {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
+    // 다음 한 줄 추가 (postman 응답 지저분해서)
+    @JsonIgnore
     private Board board;
 
     @Column(name = "file_name", nullable = false, length = 255)
