@@ -8,16 +8,13 @@ spring:
     open-in-view: false
     show-sql: true
     hibernate:
-      ddl-auto: update   # 실제 운영이면 validate 권장, 토이/실습은 update로 편하게
+      ddl-auto: update # 실제 운영이면 validate 권장, 토이/실습은 update로 편하게
     properties:
       hibernate.format_sql: true
 
-
-  profiles:     # 프로필
-    active:
-      local
+  profiles: # 프로필
+    active: local
     group:
       local: local
       prod: prod
       secure: secure
-

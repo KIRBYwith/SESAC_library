@@ -1,14 +1,8 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:library;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:mysql://kirby-lib-db.cbyooaw40u3s.ap-northeast-2.rds.amazonaws.com:3306/kirbydb?serverTimezone=UTC&characterEncoding=utf8
+    username: admin
+    password: admin123
 
   jpa:
     show-sql: true

@@ -3,11 +3,11 @@ function formatNumber(num) {
     if (num >= 100000000) { // 1억 이상
         return '약 ' + Math.floor(num / 100000000) + '억';
     } else if (num >= 10000000) { // 1천만 이상
-        return '약 ' + Math.floor(num / 10000000) + '천만';
+        return '약 ' + Math.floor(num / 10000) + '만';
     } else if (num >= 1000000) { // 100만 이상
-        return '약 ' + Math.floor(num / 1000000) + '백만';
+        return '약 ' + Math.floor(num / 10000) + '만';
     } else if (num >= 100000) { // 10만 이상
-        return '약 ' + Math.floor(num / 100000) + '십만';
+        return '약 ' + Math.floor(num / 10000) + '만';
     } else if (num >= 10000) { // 1만 이상
         return '약 ' + Math.floor(num / 10000) + '만';
     } else if (num >= 1000) { // 1천 이상
