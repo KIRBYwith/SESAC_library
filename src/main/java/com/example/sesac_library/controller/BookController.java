@@ -250,4 +250,44 @@ public class BookController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/user/{userId}/reservations")
+    public ResponseEntity<List<Map<String, Object>>> getUserReservations(@PathVariable Long userId) {
+        try {
+            List<Reservation> userReservations = reservationRepository.findActiveReservationsByUserId(userId);
+            List<Map<String, Object>> reservationDetails = new ArrayList<>();
+
+            for (Reservation reservation : userReservations) {
+                Optional<Book> bookOpt = bookRepository.findById(reservation.getBookId());
+                if (bookOpt.isPresent()) {
+                    Book book = bookOpt.get();
+
+                    // 해당 책의 예약 순번 계산
+                    List<Reservation> allReservations = reservationRepository.findActiveReservationsByBookIdOrderByDate(reservation.getBookId());
+                    int reservationOrder = 1;
+                    for (Reservation res : allReservations) {
+                        if (res.getReservationId().equals(reservation.getReservationId())) {
+                            break;
+                        }
+                        reservationOrder++;
+                    }
+
+                    Map<String, Object> reservationInfo = new HashMap<>();
+                    reservationInfo.put("reservationId", reservation.getReservationId());
+                    reservationInfo.put("bookId", book.getBookId());
+                    reservationInfo.put("title", book.getTitle());
+                    reservationInfo.put("author", book.getAuthor());
+                    reservationInfo.put("publisher", book.getPublisher());
+                    reservationInfo.put("reservationDate", reservation.getReservationDate());
+                    reservationInfo.put("status", reservation.getStatus());
+                    reservationInfo.put("reservationOrder", reservationOrder);
+                    reservationDetails.add(reservationInfo);
+                }
+            }
+
+            return ResponseEntity.ok(reservationDetails);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
