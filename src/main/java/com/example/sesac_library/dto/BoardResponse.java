@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class BoardResponse {
     private Long boardId;
     private Integer userId;
+    private String userName;  // 작성자 이름
     private String category;
     private String title;
     private String content;
@@ -21,31 +22,24 @@ public class BoardResponse {
     private Integer views;
     private List<String> fileUrls;
 
-    public static BoardResponse from(Board board) {
+    // ✅ userName을 포함한 from 메서드 (단일 메서드만 유지)
+    public static BoardResponse from(Board board, String userName) {
         BoardResponse response = new BoardResponse();
-        response.setBoardId(board.getBoardId());
-        response.setUserId(board.getUserId());
-        response.setCategory(board.getCategory());
-        response.setTitle(board.getTitle());
-        response.setContent(board.getContent());
-        response.setCreatedAt(board.getCreatedAt());
-        response.setViews(board.getViews());
+        response.boardId = board.getBoardId();
+        response.userId = board.getUserId();
+        response.userName = userName; // 작성자 이름 설정
+        response.category = board.getCategory();
+        response.title = board.getTitle();
+        response.content = board.getContent();
+        response.createdAt = board.getCreatedAt();
+        response.views = board.getViews();
 
-        /* 이전
         if (board.getFiles() != null && !board.getFiles().isEmpty()) {
-            response.setFileUrls(board.getFiles().stream()
+            response.fileUrls = board.getFiles().stream()
                     .map(BoardFile::getFileUrl)
-                    .collect(Collectors.toList()));
-        }
-        */
-
-        // 수정
-        if (board.getFiles() != null) {
-            response.setFileUrls(board.getFiles().stream()
-                    .map(BoardFile::getFileUrl)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
         } else {
-            response.setFileUrls(List.of()); // null 대신 빈 리스트
+            response.fileUrls = List.of();
         }
 
         return response;

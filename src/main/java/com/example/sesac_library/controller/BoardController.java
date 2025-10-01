@@ -2,6 +2,8 @@ package com.example.sesac_library.controller;
 
 import com.example.sesac_library.dto.BoardResponse;
 import com.example.sesac_library.entity.Board;
+import com.example.sesac_library.entity.User;  // ✅ 추가
+import com.example.sesac_library.repository.UserRepository;  // ✅ 추가
 import com.example.sesac_library.service.BoardService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,9 +26,12 @@ import java.util.stream.Collectors;
 public class BoardController {
 
     private final BoardService boardService;
+    private final UserRepository userRepository;  // ✅ 추가
 
-    public BoardController(BoardService boardService) {
+    // ✅ 생성자에 UserRepository 추가
+    public BoardController(BoardService boardService, UserRepository userRepository) {
         this.boardService = boardService;
+        this.userRepository = userRepository;
     }
 
     // 게시글 작성 (파일 업로드 포함)
@@ -47,10 +53,16 @@ public class BoardController {
         board.setPasswordHash(passwordHash);
 
         Board savedBoard = boardService.createBoard(board, file);
-        return ResponseEntity.ok(BoardResponse.from(savedBoard));
+
+        // ✅ userName 조회해서 함께 전달
+        String userName = userRepository.findByUserId(userId)
+                .map(User::getUsername)
+                .orElse("알 수 없음");
+
+        return ResponseEntity.ok(BoardResponse.from(savedBoard, userName));
     }
 
-    // 게시글 페이징 조회 (새로 추가)
+    // 게시글 페이징 조회
     @GetMapping("/list")
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getAllBoardsPaged(
@@ -58,7 +70,6 @@ public class BoardController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String category) {
 
-        // 최신글이 먼저 나오도록 boardId 기준 내림차순 정렬
         Pageable pageable = PageRequest.of(page, size, Sort.by("boardId").descending());
 
         Page<Board> boardPage;
@@ -68,8 +79,14 @@ public class BoardController {
             boardPage = boardService.findAll(pageable);
         }
 
+        // ✅ 각 게시글마다 userName 조회
         List<BoardResponse> boards = boardPage.getContent().stream()
-                .map(BoardResponse::from)
+                .map(board -> {
+                    String userName = userRepository.findByUserId(board.getUserId())
+                            .map(User::getUsername)
+                            .orElse("알 수 없음");
+                    return BoardResponse.from(board, userName);
+                })
                 .collect(Collectors.toList());
 
         Map<String, Object> response = new HashMap<>();
@@ -87,9 +104,10 @@ public class BoardController {
     @GetMapping("/list/{id}")
     @Transactional(readOnly = true)
     public ResponseEntity<BoardResponse> getBoardById(@PathVariable Long id) {
-        Board board = boardService.findByIdWithFiles(id);
-        if (board != null) {
-            return ResponseEntity.ok(BoardResponse.from(board));
+        // ✅ findByIdWithFiles는 이미 BoardResponse 반환
+        BoardResponse boardResponse = boardService.findByIdWithFiles(id);
+        if (boardResponse != null) {
+            return ResponseEntity.ok(boardResponse);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -106,24 +124,33 @@ public class BoardController {
             @RequestParam("content") String content,
             @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
 
-        // 게시글 존재 여부 확인
-        Board existingBoard = boardService.findByIdWithFiles(id);
-        if (existingBoard == null) {
+        // ✅ findByIdWithFiles는 BoardResponse 반환
+        BoardResponse existingBoardResponse = boardService.findByIdWithFiles(id);
+        if (existingBoardResponse == null) {
             return ResponseEntity.notFound().build();
         }
 
         // 작성자 본인 확인
-        if (!existingBoard.getUserId().equals(userId)) {
+        if (!existingBoardResponse.getUserId().equals(userId)) {
             return ResponseEntity.status(403).body("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
-        // 게시글 수정
+        // ✅ Board 엔티티 다시 조회 (수정을 위해)
+        Board existingBoard = new Board();
+        existingBoard.setBoardId(id);
+        existingBoard.setUserId(userId);
         existingBoard.setCategory(category);
         existingBoard.setTitle(title);
         existingBoard.setContent(content);
 
         Board updatedBoard = boardService.updateBoard(existingBoard, file);
-        return ResponseEntity.ok(BoardResponse.from(updatedBoard));
+
+        // ✅ userName 조회
+        String userName = userRepository.findByUserId(userId)
+                .map(User::getUsername)
+                .orElse("알 수 없음");
+
+        return ResponseEntity.ok(BoardResponse.from(updatedBoard, userName));
     }
 
     // 게시글 삭제
@@ -133,18 +160,17 @@ public class BoardController {
             @PathVariable Long id,
             @RequestParam("userId") Integer userId) {
 
-        // 게시글 존재 여부 확인
-        Board existingBoard = boardService.findByIdWithFiles(id);
-        if (existingBoard == null) {
+        // ✅ findByIdWithFiles는 BoardResponse 반환
+        BoardResponse existingBoardResponse = boardService.findByIdWithFiles(id);
+        if (existingBoardResponse == null) {
             return ResponseEntity.notFound().build();
         }
 
         // 작성자 본인 확인
-        if (!existingBoard.getUserId().equals(userId)) {
+        if (!existingBoardResponse.getUserId().equals(userId)) {
             return ResponseEntity.status(403).body("본인이 작성한 게시글만 삭제할 수 있습니다.");
         }
 
-        // 게시글 삭제 (연관된 파일도 함께 삭제됨 - CASCADE)
         boardService.deleteBoard(id);
         return ResponseEntity.ok().body("게시글이 삭제되었습니다.");
     }

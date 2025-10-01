@@ -158,11 +158,24 @@
 
 <script>
     let currentBoardId = null;
-    let currentUserId = 1; // 실제로는 로그인 세션에서 가져와야 함
+    //let currentUserId = 1; // 실제로는 로그인 세션에서 가져와야 함
     let originalBoard = null; // 수정 취소를 위한 원본 데이터
 
-    // 페이지 로드 시 게시글 조회
+    // 로그인된 사용자 정보 가져오기
+    let currentUserId = null;
+    let currentUserName = null;
+
     document.addEventListener('DOMContentLoaded', function() {
+        // localStorage에서 'user' 키로 가져오기
+        const loginUser = JSON.parse(localStorage.getItem('user'));
+
+        if (loginUser && loginUser.authenticated) {
+            currentUserId = loginUser.userId;  // userId: 8
+            currentUserName = loginUser.username;  // ✅ username 사용
+            console.log('로그인 사용자:', currentUserId, currentUserName); // 디버깅용
+        }
+
+        // 게시글 조회
         const urlParams = new URLSearchParams(window.location.search);
         currentBoardId = urlParams.get('id');
 
@@ -186,11 +199,12 @@
             originalBoard = board; // 원본 데이터 저장
             displayBoard(board);
 
-            // 본인 게시글이면 수정/삭제 버튼 표시
-            if (board.userId === currentUserId) {
-                document.getElementById('editBtn').style.display = 'inline-block';
-                document.getElementById('deleteBtn').style.display = 'inline-block';
-            }
+            // displayBoad로 이동해서 아래 부분 주석처리
+            // // 본인 게시글이면 수정/삭제 버튼 표시
+            // if (board.userId === currentUserId) {
+            //     document.getElementById('editBtn').style.display = 'inline-block';
+            //     document.getElementById('deleteBtn').style.display = 'inline-block';
+            // }
         } catch (error) {
             console.error(error);
             alert('게시글을 불러오는 중 오류가 발생했습니다.');
@@ -202,10 +216,24 @@
     function displayBoard(board) {
         document.getElementById('categoryDisplay').textContent = board.category;
         document.getElementById('postTitle').textContent = board.title;
-        document.getElementById('postAuthor').textContent = `작성자: ${board.userId}`;
+
+        // ✅ 작성자 표시 개선 (userName이 없으면 userId로 표시)
+        const authorName = board.userName || `사용자 ${board.userId}`;
+        document.getElementById('postAuthor').textContent = `작성자: ${authorName}`;
+
         document.getElementById('postDate').textContent = `작성일: ${formatDate(board.createdAt)}`;
         document.getElementById('postViews').textContent = `조회수: ${board.views}`;
         document.getElementById('postContent').innerHTML = board.content.replace(/\n/g, '<br>');
+
+        // ✅ 로그인 여부와 본인 글인지 확인
+        console.log('게시글 userId:', board.userId, '현재 userId:', currentUserId); // 디버깅용
+        if (currentUserId && board.userId === currentUserId) {
+            document.getElementById('editBtn').style.display = 'inline-block';
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+        }
     }
 
     // 날짜 포맷팅
@@ -342,5 +370,8 @@
         </div>
     </div>
 </footer>
+
+
+
 </body>
 </html>

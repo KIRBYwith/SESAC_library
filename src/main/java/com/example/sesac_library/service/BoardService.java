@@ -1,12 +1,16 @@
 package com.example.sesac_library.service;
 
+import com.example.sesac_library.dto.BoardResponse;
 import com.example.sesac_library.entity.Board;
 import com.example.sesac_library.entity.BoardFile;
+import com.example.sesac_library.entity.User;
 import com.example.sesac_library.repository.BoardFileRepository;
 import com.example.sesac_library.repository.BoardRepository;
+import com.example.sesac_library.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;  // ✅ 추가
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -20,13 +24,18 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final BoardFileRepository boardFileRepository;
+    private final UserRepository userRepository;
 
-    public BoardService(BoardRepository boardRepository, BoardFileRepository boardFileRepository) {
+    public BoardService(BoardRepository boardRepository,
+                        BoardFileRepository boardFileRepository,
+                        UserRepository userRepository) {
         this.boardRepository = boardRepository;
         this.boardFileRepository = boardFileRepository;
+        this.userRepository = userRepository;
     }
 
     // 게시글 저장 (파일 업로드 포함)
+    @Transactional  // ✅ 추가
     public Board createBoard(Board board, MultipartFile file) throws IOException {
         // 먼저 게시글 저장
         Board savedBoard = boardRepository.save(board);
@@ -55,39 +64,57 @@ public class BoardService {
             boardFileRepository.save(boardFile);
         }
 
-        // 파일까지 포함해서 다시 조회 후 반환
-        return findByIdWithFiles(savedBoard.getBoardId());
+        // 파일 정보 다시 조회해서 Board 반환
+        List<BoardFile> files = boardFileRepository.findByBoard_BoardId(savedBoard.getBoardId());
+        savedBoard.setFiles(files);
+        return savedBoard;
     }
 
-    // 특정 게시글 + 파일 정보까지 조회
-    public Board findByIdWithFiles(Long boardId) {
+    // 특정 게시글 + 파일 정보까지 조회 (BoardResponse 반환)
+    @Transactional  // ✅ 조회수 증가를 위해 필수!
+    public BoardResponse findByIdWithFiles(Long boardId) {
         Optional<Board> boardOpt = boardRepository.findById(boardId);
         if (boardOpt.isPresent()) {
             Board board = boardOpt.get();
-            // board 객체 대신 boardId 로 조회
+
+            // 조회수 증가 (Transactional이 있어야 DB에 반영됨)
+            board.setViews(board.getViews() + 1);
+            boardRepository.save(board);
+
+            // 파일 정보 조회
             List<BoardFile> files = boardFileRepository.findByBoard_BoardId(boardId);
             board.setFiles(files);
-            return board;
+
+            // 작성자 정보 조회
+            Optional<User> userOpt = userRepository.findByUserId(board.getUserId());
+            String userName = userOpt.map(User::getUsername).orElse("알 수 없음");
+
+            // userName 포함해서 Response 생성
+            return BoardResponse.from(board, userName);
         }
         return null;
     }
 
-    // 페이징 처리된 전체 게시글 조회 (새로 추가)
+    // 페이징 처리된 전체 게시글 조회
+    @Transactional(readOnly = true)  // ✅ 조회용
     public Page<Board> findAll(Pageable pageable) {
         return boardRepository.findAll(pageable);
     }
 
-    // 카테고리별 페이징 조회 (새로 추가)
+    // 카테고리별 페이징 조회
+    @Transactional(readOnly = true)  // ✅ 조회용
     public Page<Board> findByCategory(String category, Pageable pageable) {
         return boardRepository.findByCategory(category, pageable);
     }
 
     // 기존 메서드 (하위 호환성을 위해 유지)
+    @Transactional(readOnly = true)  // ✅ 조회용
     public List<Board> findAll() {
         return boardRepository.findAll();
     }
 
     // 게시글 수정
+    @Transactional  // ✅ 추가
     public Board updateBoard(Board board, MultipartFile file) throws IOException {
         // 기존 게시글 저장 (업데이트)
         Board updatedBoard = boardRepository.save(board);
@@ -116,13 +143,16 @@ public class BoardService {
             boardFileRepository.save(boardFile);
         }
 
-        // 파일까지 포함해서 다시 조회 후 반환
-        return findByIdWithFiles(updatedBoard.getBoardId());
+        // 파일 정보 다시 조회해서 Board 반환
+        List<BoardFile> files = boardFileRepository.findByBoard_BoardId(updatedBoard.getBoardId());
+        updatedBoard.setFiles(files);
+        return updatedBoard;
     }
 
     // 게시글 삭제
+    @Transactional  // ✅ 추가
     public void deleteBoard(Long boardId) {
-        // 연관된 파일들 먼저 삭제 (CASCADE 설정되어 있으면 자동으로 삭제됨)
+        // 연관된 파일들 먼저 삭제
         List<BoardFile> files = boardFileRepository.findByBoard_BoardId(boardId);
 
         // 실제 파일 시스템에서 파일 삭제
@@ -134,12 +164,11 @@ public class BoardService {
                     physicalFile.delete();
                 }
             } catch (Exception e) {
-                // 파일 삭제 실패해도 DB는 삭제 진행
                 e.printStackTrace();
             }
         }
 
-        // DB에서 게시글 삭제 (CASCADE로 파일 정보도 함께 삭제됨)
+        // DB에서 게시글 삭제
         boardRepository.deleteById(boardId);
     }
 }
