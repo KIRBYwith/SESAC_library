@@ -576,33 +576,43 @@
 </div>
 
 <script>
-    // 게시글 보기
-    function viewPost(postId) {
-        alert('게시글 ' + postId + '번을 봅니다.');
-        // 실제 구현시에는 상세페이지로 이동
-    }
-    //
-
-    // 검색
-    // 게시판 데이터
-    let boardData = [
-        {id: 15, category: 'notice', title: '📢 KIRBY 도서관 12월 운영 안내', author: '관리자', date: '12-18', views: 156, content: 'KIRBY 도서관 12월 운영 시간 및 특별 이벤트 안내입니다.'},
-        {id: 14, category: 'review', title: '📚 \'미드나이트 라이브러리\' 독후감', author: '독서왕', date: '12-17', views: 89, content: '정말 감동적인 소설이었습니다. 추천합니다!'},
-        {id: 13, category: 'qna', title: '❓ 도서 예약 방법 문의', author: '궁금이', date: '12-16', views: 45, content: '도서 예약은 어떻게 하나요?'},
-        {id: 12, category: 'free', title: '💬 독서 모임 참여하고 싶어요!', author: '책사랑', date: '12-15', views: 67, content: '독서 모임에 참여하고 싶습니다.'},
-        {id: 11, category: 'review', title: '📖 \'원피스\' 만화 추천합니다', author: '만화왕', date: '12-14', views: 123, content: '원피스 정말 재미있어요!'},
-        {id: 10, category: 'free', title: '🎉 크리스마스 독서 이벤트 후기', author: '이벤트러버', date: '12-13', views: 78, content: '크리스마스 이벤트 정말 좋았습니다.'},
-        {id: 9, category: 'qna', title: '❓ 전자책 대출 가능한가요?', author: '디지털러', date: '12-12', views: 34, content: '전자책도 대출할 수 있나요?'},
-        {id: 8, category: 'review', title: '📚 \'파이썬 프로그래밍\' 학습 후기', author: '코딩초보', date: '12-11', views: 92, content: '파이썬 공부하기 좋은 책입니다.'},
-        {id: 7, category: 'notice', title: '📢 도서관 휴관일 안내', author: '관리자', date: '12-10', views: 203, content: '도서관 휴관일 안내드립니다.'},
-        {id: 6, category: 'free', title: '💭 독서 기록 앱 추천해주세요', author: '기록왕', date: '12-09', views: 56, content: '독서 기록 앱 추천해주세요.'}
-    ];
-
+    let boardData = [];
     let currentCategory = 'all';
-    let currentPage = 1;
-    const postsPerPage = 10;
+    let currentPage = 0;  // 백엔드는 0부터 시작
+    let totalPages = 0;
+    let totalItems = 0;
+    const postsPerPage = 20;  // 페이지당 20개
 
-    function searchPosts() {
+    // ✅ RDS에서 게시글 불러오기 (페이징 처리)
+    async function loadBoardData(page = 0, category = 'all') {
+        try {
+            let url = `/api/board/list?page=${page}&size=${postsPerPage}`;
+            if (category !== 'all') {
+                url += `&category=${category}`;
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('데이터 불러오기 실패');
+            }
+
+            const data = await response.json();
+            boardData = data.boards;
+            currentPage = data.currentPage;
+            totalPages = data.totalPages;
+            totalItems = data.totalItems;
+
+            renderBoard(boardData);
+            updateBoardInfo();
+            updatePagination();
+        } catch (error) {
+            console.error(error);
+            alert('게시판 데이터를 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    // ✅ 검색
+    async function searchPosts() {
         const searchInput = document.getElementById('searchInput');
         const searchType = document.querySelector('.search-type').value;
         const keyword = searchInput.value.trim();
@@ -612,32 +622,25 @@
             return;
         }
 
-        // 검색 결과 필터링
+        // 검색은 현재 로드된 데이터에서만 수행
         let filteredData = boardData.filter(post => {
-            if (currentCategory !== 'all' && post.category !== currentCategory) {
-                return false;
-            }
-            
             switch(searchType) {
                 case 'title':
                     return post.title.toLowerCase().includes(keyword.toLowerCase());
                 case 'content':
                     return post.content.toLowerCase().includes(keyword.toLowerCase());
                 case 'author':
-                    return post.author.toLowerCase().includes(keyword.toLowerCase());
+                    return post.userId.toString().includes(keyword);
                 case 'all':
                     return post.title.toLowerCase().includes(keyword.toLowerCase()) ||
-                           post.content.toLowerCase().includes(keyword.toLowerCase()) ||
-                           post.author.toLowerCase().includes(keyword.toLowerCase());
+                        post.content.toLowerCase().includes(keyword.toLowerCase());
                 default:
                     return true;
             }
         });
 
         renderBoard(filteredData);
-        updateBoardInfo(filteredData.length);
-        
-        // 검색 결과 알림
+
         if (filteredData.length === 0) {
             alert('검색 결과가 없습니다.');
         } else {
@@ -645,253 +648,170 @@
         }
     }
 
-    // 카테고리 필터링
+    // ✅ 카테고리 필터링
     function filterByCategory(category) {
         currentCategory = category;
-        
-        // 카테고리 버튼 활성화 상태 업데이트
+
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         document.querySelector(`[data-category="${category}"]`).classList.add('active');
-        
-        // 필터링된 데이터 렌더링
-        let filteredData = boardData;
-        if (category !== 'all') {
-            filteredData = boardData.filter(post => post.category === category);
-        }
-        
-        renderBoard(filteredData);
-        updateBoardInfo(filteredData.length);
+
+        // 카테고리 변경 시 첫 페이지부터 다시 로드
+        loadBoardData(0, category);
     }
 
-    // 게시판 렌더링
+    // ✅ 게시판 렌더링
     function renderBoard(data) {
         const tbody = document.getElementById('boardTableBody');
         tbody.innerHTML = '';
-        
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">게시글이 없습니다.</td></tr>';
+            return;
+        }
+
         data.forEach(post => {
             const row = document.createElement('tr');
-            row.setAttribute('data-category', post.category);
-            
-            const noticeBadge = post.category === 'notice' ? '<span class="notice-badge">공지</span>' : '';
-            
+            row.setAttribute('data-category', post.category || '');
+
+            // 카테고리에 따른 뱃지
+            let categoryBadge = '';
+            if (post.category === '공지사항') {
+                categoryBadge = '<span class="notice-badge" style="background: #ff4444; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px;">공지</span>';
+            } else if (post.category === '도서리뷰') {
+                categoryBadge = '<span class="notice-badge" style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px;">리뷰</span>';
+            }
+
             row.innerHTML = `
-                <td class="number">${post.id}</td>
+                <td class="number">${post.boardId}</td>
                 <td class="title">
-                    ${noticeBadge}
-                    <a href="boardView.html?id=${post.id}" onclick="viewPost(${post.id})">${post.title}</a>
+                    ${categoryBadge}
+                    <a href="boardView.html?id=${post.boardId}" onclick="viewPost(${post.boardId})">${post.title}</a>
                 </td>
-                <td class="author">${post.author}</td>
-                <td class="date">${post.date}</td>
-                <td class="views">${post.views}</td>
+                <td class="author">${post.userId}</td>
+                <td class="date">${formatDate(post.createdAt)}</td>
+                <td class="views">${post.views || 0}</td>
             `;
-            
+
             tbody.appendChild(row);
         });
     }
 
-    // 게시판 정보 업데이트
-    function updateBoardInfo(totalPosts) {
-        const totalPages = Math.ceil(totalPosts / postsPerPage);
-        document.querySelector('.total-posts').textContent = `Total ${totalPosts} / ${totalPages}개 페이지`;
+    // ✅ 날짜 포맷팅
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
-    // 게시글 조회수 증가
+    // ✅ 게시판 정보 업데이트
+    function updateBoardInfo() {
+        document.querySelector('.total-posts').textContent = `Total ${totalItems} / ${totalPages}개 페이지`;
+    }
+
+    // ✅ 게시글 조회수 증가 (선택사항 - 백엔드 API 필요)
     function viewPost(id) {
-        const post = boardData.find(p => p.id === id);
-        if (post) {
-            post.views++;
-            localStorage.setItem('boardData', JSON.stringify(boardData));
-        }
+        // 필요시 서버에 조회수 증가 API 호출
+        // fetch(`/api/board/${id}/view`, { method: 'POST' });
     }
 
-    // 페이지 이동
+    // ✅ 페이지 이동
     function goToPage(page) {
-        currentPage = page;
-        
-        // 현재 활성 페이지 표시 업데이트
-        document.querySelectorAll('.page-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        const targetBtn = document.querySelector(`[onclick="goToPage(${page})"]`);
-        if (targetBtn) {
-            targetBtn.classList.add('active');
-        }
-        
-        // 페이지네이션 업데이트
-        updatePagination();
+        if (page < 0 || page >= totalPages) return;
+        loadBoardData(page, currentCategory);
     }
 
+    // ✅ 이전 페이지
     function prevPage() {
-        alert('첫 페이지로 이동합니다.');
+        if (currentPage > 0) {
+            goToPage(currentPage - 1);
+        }
     }
 
+    // ✅ 다음 페이지
     function nextPage() {
-        alert('마지막 페이지로 이동합니다.');
+        if (currentPage < totalPages - 1) {
+            goToPage(currentPage + 1);
+        }
     }
 
-    // 페이지네이션 업데이트
+    // ✅ 페이지네이션 업데이트
     function updatePagination() {
-        const totalPages = Math.ceil(boardData.length / postsPerPage);
         const pagination = document.querySelector('.pagination');
-        
-        let paginationHTML = `
-            <a href="#" class="page-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="prevPage()">처음</a>
+        let paginationHTML = '';
+
+        // 처음 버튼
+        paginationHTML += `
+            <a href="#" class="page-btn ${currentPage === 0 ? 'disabled' : ''}"
+               onclick="event.preventDefault(); goToPage(0);">처음</a>
         `;
-        
-        for (let i = 1; i <= totalPages; i++) {
+
+        // 이전 버튼
+        paginationHTML += `
+            <a href="#" class="page-btn ${currentPage === 0 ? 'disabled' : ''}"
+               onclick="event.preventDefault(); prevPage();">이전</a>
+        `;
+
+        // 페이지 번호 (최대 5개씩 표시)
+        let startPage = Math.max(0, currentPage - 2);
+        let endPage = Math.min(totalPages - 1, startPage + 4);
+
+        // startPage 조정 (끝에서 5개 미만일 때)
+        if (endPage - startPage < 4) {
+            startPage = Math.max(0, endPage - 4);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
-                <a href="#" class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</a>
+                <a href="#" class="page-btn ${i === currentPage ? 'active' : ''}"
+                   onclick="event.preventDefault(); goToPage(${i});">${i + 1}</a>
             `;
         }
-        
+
+        // 다음 버튼
         paginationHTML += `
-            <a href="#" class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="nextPage()">마지막</a>
+            <a href="#" class="page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}"
+               onclick="event.preventDefault(); nextPage();">다음</a>
         `;
-        
+
+        // 마지막 버튼
+        paginationHTML += `
+            <a href="#" class="page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}"
+               onclick="event.preventDefault(); goToPage(${totalPages - 1});">마지막</a>
+        `;
+
         pagination.innerHTML = paginationHTML;
     }
 
-    // 초기화
+    // ✅ 초기화
     document.addEventListener('DOMContentLoaded', function() {
-        // 로컬 스토리지에서 데이터 로드
-        const savedData = localStorage.getItem('boardData');
-        if (savedData) {
-            boardData = JSON.parse(savedData);
-        }
-        
-        // 카테고리 버튼 이벤트 리스너 추가
+        // RDS 데이터 불러오기
+        loadBoardData(0, 'all');
+
+        // 카테고리 버튼 이벤트
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const category = this.getAttribute('data-category');
                 filterByCategory(category);
             });
         });
-        
+
         // 검색 입력창 엔터키 이벤트
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchPosts();
-            }
-        });
-        
-        // 초기 게시판 렌더링
-        renderBoard(boardData);
-        updateBoardInfo(boardData.length);
-        updatePagination();
-    });
-
-    // 카테고리 탭 기능
-    document.querySelectorAll('.tab-btn').forEach(tab => {
-        tab.addEventListener('click', function() {
-            // 모든 탭에서 active 클래스 제거
-            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-            // 클릭한 탭에 active 클래스 추가
-            this.classList.add('active');
-
-            alert(this.textContent + ' 카테고리를 선택했습니다.');
-            // 실제 구현시에는 해당 카테고리 게시글 필터링
-        });
-    });
-
-    // 검색 엔터키 이벤트
-    document.querySelector('.search-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchPosts();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchPosts();
+                }
+            });
         }
     });
 </script>
-<script>
-    // 로그인 여부에 따라 글쓰기 버튼 숨김
-    document.addEventListener('DOMContentLoaded', function () {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-        const writeBtn = document.getElementById('writeBtnWrapper');
 
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-
-        if (isLoggedIn && user) {
-            // 로그인 상태면 로그인 버튼 숨기고 마이페이지 버튼 표시
-            loginBtn.style.display = 'none';
-            signupBtn.style.display = 'none';
-            mypageBtn.style.display = 'inline-block';
-            
-            // 관리자 체크
-            if (user.role === 'ADMIN' && adminBtn) {
-                adminBtn.style.display = 'inline-block';
-            }
-
-            // 글쓰기 버튼 보이기
-            if (writeBtn) {
-                writeBtn.style.display = 'flex';
-            }
-        } else {
-            // 로그인 상태가 아니면 로그인 버튼을 login.html로 연결
-            if (loginBtn) {
-                loginBtn.href = 'login.html';
-            }
-            
-            // 마이페이지, 관리자페이지 버튼 숨기기
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-
-            // 글쓰기 버튼 숨기기
-            if (writeBtn) {
-                writeBtn.style.display = 'none';
-            }
-        }
-        
-        // 헤더 업데이트
-        updateHeaderForLogin();
-    });
-
-    // 로그아웃 기능
-    function logout() {
-        if (confirm('정말 로그아웃 하시겠습니까?')) {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('user');
-            alert('로그아웃 되었습니다.');
-            location.reload();
-        }
-    }
-
-    // 로그인 상태 체크 및 헤더 업데이트
-    function updateHeaderForLogin() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        if (isLoggedIn) {
-            // 로그인된 상태
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-            
-            // 관리자 체크
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'ADMIN' && adminBtn) {
-                adminBtn.style.display = 'inline-block';
-            }
-        } else {
-            // 로그인되지 않은 상태
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (signupBtn) signupBtn.style.display = 'inline-block';
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-        }
-    }
-
-</script>
 
 <!-- 푸터 -->
 <footer>
