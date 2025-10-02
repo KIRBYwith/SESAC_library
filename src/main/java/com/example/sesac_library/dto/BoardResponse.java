@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 @Setter
 public class BoardResponse {
     private Long boardId;
-    private Integer userId;
-    private String userName;  // 작성자 이름
+    private Long userId; // ✅ Integer → Long 변경
+    private String userName; // ✅ 작성자 이름 추가
     private String category;
     private String title;
     private String content;
@@ -22,24 +22,23 @@ public class BoardResponse {
     private Integer views;
     private List<String> fileUrls;
 
-    // ✅ userName을 포함한 from 메서드 (단일 메서드만 유지)
     public static BoardResponse from(Board board, String userName) {
         BoardResponse response = new BoardResponse();
-        response.boardId = board.getBoardId();
-        response.userId = board.getUserId();
-        response.userName = userName; // 작성자 이름 설정
-        response.category = board.getCategory();
-        response.title = board.getTitle();
-        response.content = board.getContent();
-        response.createdAt = board.getCreatedAt();
-        response.views = board.getViews();
+        response.setBoardId(board.getBoardId());
+        response.setUserId(board.getUserId());
+        response.setUserName(userName); // ✅ 작성자 이름 설정
+        response.setCategory(board.getCategory());
+        response.setTitle(board.getTitle());
+        response.setContent(board.getContent());
+        response.setCreatedAt(board.getCreatedAt());
+        response.setViews(board.getViews());
 
-        if (board.getFiles() != null && !board.getFiles().isEmpty()) {
-            response.fileUrls = board.getFiles().stream()
+        if (board.getFiles() != null) {
+            response.setFileUrls(board.getFiles().stream()
                     .map(BoardFile::getFileUrl)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
         } else {
-            response.fileUrls = List.of();
+            response.setFileUrls(List.of());
         }
 
         return response;

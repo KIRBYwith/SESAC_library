@@ -101,7 +101,40 @@
     const fileInput = document.getElementById('files');
     const fileList = document.getElementById('fileList');
 
-    // 선택된 파일 목록 표시 1
+    // state.js 로드
+    const s = document.createElement('script');
+    s.src = '/js/state.js';
+    document.head.appendChild(s);
+
+    let currentUserId = null;
+    let currentUserName = null;
+
+    // 페이지 로드 시 로그인 상태 확인
+    document.addEventListener('DOMContentLoaded', async function() {
+        // state.js 로딩 대기
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (typeof State !== 'undefined') {
+            // 서버에서 최신 사용자 정보 가져오기
+            const userData = await State.updateUserInfo();
+
+            if (userData && userData.authenticated) {
+                currentUserId = userData.userId;
+                currentUserName = userData.username;
+                console.log('로그인 사용자:', currentUserId, currentUserName);
+
+                // 헤더 업데이트
+                State.checkAuthStatus();
+            } else {
+                console.log('비로그인 상태');
+                alert('로그인이 필요한 페이지입니다.');
+                location.href = 'login.html';
+                return;
+            }
+        }
+    });
+
+    // 선택된 파일 목록 표시
     fileInput.addEventListener('change', () => {
         fileList.innerHTML = '';
         Array.from(fileInput.files).forEach(file => {
@@ -111,14 +144,16 @@
         });
     });
 
-    // 포인트 지급을 위한 state 로더
-    const s = document.createElement('script');
-    s.src = '/js/state.js';
-    document.head.appendChild(s);
-
     // 폼 제출
     postForm.addEventListener('submit', async function(e){
         e.preventDefault();
+
+        // 로그인 확인
+        if (!currentUserId) {
+            alert('로그인이 필요합니다.');
+            location.href = 'login.html';
+            return;
+        }
 
         const category = this.category.value;
         const title = this.title.value.trim();
@@ -126,44 +161,35 @@
         const content = this.content.value.trim();
         const password = this.password.value;
 
+        // 유효성 검사
         if(!category){ alert('카테고리를 선택해주세요.'); return; }
         if(title.length < 2){ alert('제목을 2자 이상 입력해주세요.'); return; }
         if(author.length < 2){ alert('작성자명을 2자 이상 입력해주세요.'); return; }
         if(content.length < 4){ alert('내용을 4자 이상 입력해주세요.'); return; }
         if(password.length < 4){ alert('비밀번호를 4자 이상 입력해주세요.'); return; }
 
-        // 👉 백엔드 API 요구사항에 맞게 JSON 만들기
-        const boardJson = {
-            category: category,
-            title: title,
-            content: content,
-            passwordHash: password
-        };
-
         const formData = new FormData();
 
-// userId 따로 추가 (현재는 고정 1)
-        formData.append("userId", 1);
-
-// 개별 항목 추가
-        formData.append("userId", 1);
+        // 로그인한 사용자의 실제 userId 사용
+        formData.append("userId", currentUserId);
         formData.append("category", category);
         formData.append("title", title);
         formData.append("content", content);
         formData.append("password_hash", password);
 
-// 파일 여러 개 첨부 가능
+        // 파일 여러 개 첨부 가능
         Array.from(fileInput.files).forEach(file => {
             formData.append("file", file);
         });
 
         try {
-            const response = await fetch("http://localhost:8080/api/board/write", {
+            const response = await fetch("/api/board/write", {
                 method: "POST",
-                body: formData
+                body: formData,
+                credentials: 'include' // 세션 쿠키 포함
             });
 
-            const responseText = await response.text();  // 응답 원문 받기
+            const responseText = await response.text();
             console.log("서버 응답 원문:", responseText);
 
             if(!response.ok){
@@ -176,10 +202,15 @@
             alert("게시글이 등록되었습니다! 글 번호: " + result.boardId);
 
             // 포인트 지급 (+10)
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            if (user && window.State) {
-                State.awardPoints(user, 10);
-                alert('게시글 작성 보상: +10포인트');
+            if (window.State) {
+                const user = State.getCurrentUser();
+                if (user) {
+                    State.awardPoints(user, 10);
+                    alert('게시글 작성 보상: +10포인트');
+
+                    // 서버에도 포인트 업데이트 반영 (서버 API가 있다면)
+                    await State.updateUserInfo();
+                }
             }
 
             // 게시판으로 이동
@@ -191,52 +222,12 @@
         }
     });
 
-
     // 로그아웃 기능
     function logout() {
-        if (confirm('정말 로그아웃 하시겠습니까?')) {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('user');
-            alert('로그아웃 되었습니다.');
-            location.reload();
+        if (window.State) {
+            State.logout();
         }
     }
-
-    // 로그인 상태 체크 및 헤더 업데이트
-    function updateHeaderForLogin() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        if (isLoggedIn) {
-            // 로그인된 상태
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-
-            // 관리자 체크
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'ADMIN' && adminBtn) {
-                adminBtn.style.display = 'inline-block';
-            }
-        } else {
-            // 로그인되지 않은 상태
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (signupBtn) signupBtn.style.display = 'inline-block';
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-        }
-    }
-
-    // 페이지 로드 시 헤더 업데이트
-    document.addEventListener('DOMContentLoaded', function() {
-        updateHeaderForLogin();
-    });
 </script>
 
 <!-- 푸터 -->

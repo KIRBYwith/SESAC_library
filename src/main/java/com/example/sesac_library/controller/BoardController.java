@@ -2,9 +2,8 @@ package com.example.sesac_library.controller;
 
 import com.example.sesac_library.dto.BoardResponse;
 import com.example.sesac_library.entity.Board;
-import com.example.sesac_library.entity.User;  // ✅ 추가
-import com.example.sesac_library.repository.UserRepository;  // ✅ 추가
 import com.example.sesac_library.service.BoardService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,34 +15,35 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/board")
 public class BoardController {
 
     private final BoardService boardService;
-    private final UserRepository userRepository;  // ✅ 추가
 
-    // ✅ 생성자에 UserRepository 추가
-    public BoardController(BoardService boardService, UserRepository userRepository) {
+    public BoardController(BoardService boardService) {
         this.boardService = boardService;
-        this.userRepository = userRepository;
     }
 
     // 게시글 작성 (파일 업로드 포함)
     @PostMapping("/write")
     @Transactional
-    public ResponseEntity<BoardResponse> createBoard(
-            @RequestParam("userId") Integer userId,
+    public ResponseEntity<?> createBoard(
+            @RequestParam("userId") Long userId, // ✅ Integer → Long
             @RequestParam("category") String category,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam("password_hash") String passwordHash,
-            @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            HttpSession session) throws IOException {
+
+        // 세션 확인
+        String sessionUsername = (String) session.getAttribute("username");
+        if (sessionUsername == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
 
         Board board = new Board();
         board.setUserId(userId);
@@ -53,16 +53,11 @@ public class BoardController {
         board.setPasswordHash(passwordHash);
 
         Board savedBoard = boardService.createBoard(board, file);
-
-        // ✅ userName 조회해서 함께 전달
-        String userName = userRepository.findByUserId(userId)
-                .map(User::getUsername)
-                .orElse("알 수 없음");
-
-        return ResponseEntity.ok(BoardResponse.from(savedBoard, userName));
+        BoardResponse response = boardService.findByIdWithUsername(savedBoard.getBoardId());
+        return ResponseEntity.ok(response);
     }
 
-    // 게시글 페이징 조회
+    // 게시글 페이징 조회 (username 포함)
     @GetMapping("/list")
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getAllBoardsPaged(
@@ -72,25 +67,15 @@ public class BoardController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("boardId").descending());
 
-        Page<Board> boardPage;
+        Page<BoardResponse> boardPage;
         if (category != null && !category.isEmpty() && !category.equals("all")) {
-            boardPage = boardService.findByCategory(category, pageable);
+            boardPage = boardService.findByCategoryWithUsername(category, pageable);
         } else {
-            boardPage = boardService.findAll(pageable);
+            boardPage = boardService.findAllWithUsername(pageable);
         }
 
-        // ✅ 각 게시글마다 userName 조회
-        List<BoardResponse> boards = boardPage.getContent().stream()
-                .map(board -> {
-                    String userName = userRepository.findByUserId(board.getUserId())
-                            .map(User::getUsername)
-                            .orElse("알 수 없음");
-                    return BoardResponse.from(board, userName);
-                })
-                .collect(Collectors.toList());
-
         Map<String, Object> response = new HashMap<>();
-        response.put("boards", boards);
+        response.put("boards", boardPage.getContent());
         response.put("currentPage", boardPage.getNumber());
         response.put("totalPages", boardPage.getTotalPages());
         response.put("totalItems", boardPage.getTotalElements());
@@ -100,14 +85,13 @@ public class BoardController {
         return ResponseEntity.ok(response);
     }
 
-    // 게시글 단건 조회 (파일까지 포함)
+    // 게시글 단건 조회 (username 포함)
     @GetMapping("/list/{id}")
     @Transactional(readOnly = true)
     public ResponseEntity<BoardResponse> getBoardById(@PathVariable Long id) {
-        // ✅ findByIdWithFiles는 이미 BoardResponse 반환
-        BoardResponse boardResponse = boardService.findByIdWithFiles(id);
-        if (boardResponse != null) {
-            return ResponseEntity.ok(boardResponse);
+        BoardResponse response = boardService.findByIdWithUsername(id);
+        if (response != null) {
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -118,39 +102,34 @@ public class BoardController {
     @Transactional
     public ResponseEntity<?> updateBoard(
             @PathVariable Long id,
-            @RequestParam("userId") Integer userId,
+            @RequestParam("userId") Long userId, // ✅ Integer → Long
             @RequestParam("category") String category,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
-            @RequestPart(value = "file", required = false) MultipartFile file) throws IOException {
+            @RequestPart(value = "file", required = false) MultipartFile file,
+            HttpSession session) throws IOException {
 
-        // ✅ findByIdWithFiles는 BoardResponse 반환
-        BoardResponse existingBoardResponse = boardService.findByIdWithFiles(id);
-        if (existingBoardResponse == null) {
+        String sessionUsername = (String) session.getAttribute("username");
+        if (sessionUsername == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        Board existingBoard = boardService.findByIdWithFiles(id);
+        if (existingBoard == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // 작성자 본인 확인
-        if (!existingBoardResponse.getUserId().equals(userId)) {
+        if (!existingBoard.getUserId().equals(userId)) {
             return ResponseEntity.status(403).body("본인이 작성한 게시글만 수정할 수 있습니다.");
         }
 
-        // ✅ Board 엔티티 다시 조회 (수정을 위해)
-        Board existingBoard = new Board();
-        existingBoard.setBoardId(id);
-        existingBoard.setUserId(userId);
         existingBoard.setCategory(category);
         existingBoard.setTitle(title);
         existingBoard.setContent(content);
 
         Board updatedBoard = boardService.updateBoard(existingBoard, file);
-
-        // ✅ userName 조회
-        String userName = userRepository.findByUserId(userId)
-                .map(User::getUsername)
-                .orElse("알 수 없음");
-
-        return ResponseEntity.ok(BoardResponse.from(updatedBoard, userName));
+        BoardResponse response = boardService.findByIdWithUsername(updatedBoard.getBoardId());
+        return ResponseEntity.ok(response);
     }
 
     // 게시글 삭제
@@ -158,16 +137,20 @@ public class BoardController {
     @Transactional
     public ResponseEntity<?> deleteBoard(
             @PathVariable Long id,
-            @RequestParam("userId") Integer userId) {
+            @RequestParam("userId") Long userId, // ✅ Integer → Long
+            HttpSession session) {
 
-        // ✅ findByIdWithFiles는 BoardResponse 반환
-        BoardResponse existingBoardResponse = boardService.findByIdWithFiles(id);
-        if (existingBoardResponse == null) {
+        String sessionUsername = (String) session.getAttribute("username");
+        if (sessionUsername == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        Board existingBoard = boardService.findByIdWithFiles(id);
+        if (existingBoard == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // 작성자 본인 확인
-        if (!existingBoardResponse.getUserId().equals(userId)) {
+        if (!existingBoard.getUserId().equals(userId)) {
             return ResponseEntity.status(403).body("본인이 작성한 게시글만 삭제할 수 있습니다.");
         }
 

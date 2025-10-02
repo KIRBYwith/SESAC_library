@@ -403,9 +403,6 @@
             }
         }
     </style>
-    <script>
-        const isLoggedIn = false; // ← 여기를 true로 바꾸면 로그인 상태
-    </script>
 </head>
 <body>
 <header>
@@ -427,17 +424,15 @@
         <h2 class="board-title">자유게시판</h2>
 
         <div class="board-info">
-            <span class="total-posts">Total 1729 / 4개 페이지</span>
-
+            <span class="total-posts">Loading...</span>
         </div>
 
         <div class="board-controls">
             <div class="category-tabs">
                 <button class="category-btn active" data-category="all">전체</button>
-                <button class="category-btn" data-category="notice">공지사항</button>
-                <button class="category-btn" data-category="review">도서리뷰</button>
-                <button class="category-btn" data-category="qna">질문답변</button>
-                <button class="category-btn" data-category="free">자유게시판</button>
+                <button class="category-btn" data-category="공지사항">공지사항</button>
+                <button class="category-btn" data-category="자유게시판">자유게시판</button>
+                <button class="category-btn" data-category="도서리뷰">도서리뷰</button>
             </div>
 
             <div class="search-section">
@@ -462,136 +457,50 @@
             <thead>
             <tr>
                 <th width="8%">번호</th>
-                <th width="40%">제목</th>
-                <th width="12%">글쓴이</th>
-                <th width="12%">날짜</th>
-                <th width="8%">조회</th>
+                <th width="50%">제목</th>
+                <th width="15%">글쓴이</th>
+                <th width="15%">날짜</th>
             </tr>
             </thead>
             <tbody id="boardTableBody">
-            <tr data-category="notice">
-                <td class="number">15</td>
-                <td class="title">
-                    <span class="notice-badge">공지</span>
-                    <a href="boardView.html?id=15">📢 KIRBY 도서관 12월 운영 안내</a>
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 50px;">
+                    게시글을 불러오는 중...
                 </td>
-                <td class="author">관리자</td>
-                <td class="date">12-18</td>
-                <td class="views">156</td>
-            </tr>
-            <tr data-category="review">
-                <td class="number">14</td>
-                <td class="title">
-                    <a href="boardView.html?id=14">📚 '미드나이트 라이브러리' 독후감</a>
-                </td>
-                <td class="author">독서왕</td>
-                <td class="date">12-17</td>
-                <td class="views">89</td>
-            </tr>
-            <tr data-category="qna">
-                <td class="number">13</td>
-                <td class="title">
-                    <a href="boardView.html?id=13">❓ 도서 예약 방법 문의</a>
-                </td>
-                <td class="author">궁금이</td>
-                <td class="date">12-16</td>
-                <td class="views">45</td>
-            </tr>
-            <tr data-category="free">
-                <td class="number">12</td>
-                <td class="title">
-                    <a href="boardView.html?id=12">💬 독서 모임 참여하고 싶어요!</a>
-                </td>
-                <td class="author">책사랑</td>
-                <td class="date">12-15</td>
-                <td class="views">67</td>
-            </tr>
-            <tr data-category="review">
-                <td class="number">11</td>
-                <td class="title">
-                    <a href="boardView.html?id=11">📖 '원피스' 만화 추천합니다</a>
-                </td>
-                <td class="author">만화왕</td>
-                <td class="date">12-14</td>
-                <td class="views">123</td>
-            </tr>
-            <tr data-category="free">
-                <td class="number">10</td>
-                <td class="title">
-                    <a href="boardView.html?id=10">🎉 크리스마스 독서 이벤트 후기</a>
-                </td>
-                <td class="author">이벤트러버</td>
-                <td class="date">12-13</td>
-                <td class="views">78</td>
-            </tr>
-            <tr data-category="qna">
-                <td class="number">9</td>
-                <td class="title">
-                    <a href="boardView.html?id=9">❓ 전자책 대출 가능한가요?</a>
-                </td>
-                <td class="author">디지털러</td>
-                <td class="date">12-12</td>
-                <td class="views">34</td>
-            </tr>
-            <tr data-category="review">
-                <td class="number">8</td>
-                <td class="title">
-                    <a href="boardView.html?id=8">📚 '파이썬 프로그래밍' 학습 후기</a>
-                </td>
-                <td class="author">코딩초보</td>
-                <td class="date">12-11</td>
-                <td class="views">92</td>
-            </tr>
-            <tr data-category="notice">
-                <td class="number">7</td>
-                <td class="title">
-                    <span class="notice-badge">공지</span>
-                    <a href="boardView.html?id=7">📢 도서관 휴관일 안내</a>
-                </td>
-                <td class="author">관리자</td>
-                <td class="date">12-10</td>
-                <td class="views">203</td>
-            </tr>
-            <tr data-category="free">
-                <td class="number">6</td>
-                <td class="title">
-                    <a href="boardView.html?id=6">💭 독서 기록 앱 추천해주세요</a>
-                </td>
-                <td class="author">기록왕</td>
-                <td class="date">12-09</td>
-                <td class="views">56</td>
             </tr>
             </tbody>
         </table>
 
-        <div class="pagination">
-            <a href="#" class="page-btn disabled" onclick="prevPage()">처음</a>
-            <a href="#" class="page-btn" onclick="goToPage(1)">1</a>
-            <a href="#" class="page-btn" onclick="goToPage(2)">2</a>
-            <a href="#" class="page-btn active" onclick="goToPage(3)">3</a>
-            <a href="#" class="page-btn" onclick="goToPage(4)">4</a>
-            <a href="#" class="page-btn" onclick="nextPage()">맨끝</a>
-        </div>
+        <div class="pagination"></div>
     </div>
 </div>
 
 <script>
+    // ✅ state.js 로드
+    const s = document.createElement('script');
+    s.src = '/js/state.js';
+    document.head.appendChild(s);
+
     let boardData = [];
     let currentCategory = 'all';
-    let currentPage = 0;  // 백엔드는 0부터 시작
+    let currentPage = 0;
     let totalPages = 0;
     let totalItems = 0;
-    const postsPerPage = 20;  // 페이지당 20개
+    let currentUser = null;
+    const postsPerPage = 20;
 
-    // ✅ RDS에서 게시글 불러오기 (페이징 처리)
+    // 게시글 불러오기
     async function loadBoardData(page = 0, category = 'all') {
         try {
             let url = `/api/board/list?page=${page}&size=${postsPerPage}`;
             if (category !== 'all') {
-                url += `&category=${category}`;
+                url += `&category=${encodeURIComponent(category)}`;
             }
 
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'include'
+            });
+
             if (!response.ok) {
                 throw new Error('데이터 불러오기 실패');
             }
@@ -607,12 +516,13 @@
             updatePagination();
         } catch (error) {
             console.error(error);
-            alert('게시판 데이터를 불러오는 중 오류가 발생했습니다.');
+            const tbody = document.getElementById('boardTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 50px; color: #dc3545;">게시판 데이터를 불러오는 중 오류가 발생했습니다.</td></tr>';
         }
     }
 
-    // ✅ 검색
-    async function searchPosts() {
+    // 검색
+    function searchPosts() {
         const searchInput = document.getElementById('searchInput');
         const searchType = document.querySelector('.search-type').value;
         const keyword = searchInput.value.trim();
@@ -622,7 +532,6 @@
             return;
         }
 
-        // 검색은 현재 로드된 데이터에서만 수행
         let filteredData = boardData.filter(post => {
             switch(searchType) {
                 case 'title':
@@ -630,10 +539,11 @@
                 case 'content':
                     return post.content.toLowerCase().includes(keyword.toLowerCase());
                 case 'author':
-                    return post.userId.toString().includes(keyword);
+                    return post.userName && post.userName.toLowerCase().includes(keyword.toLowerCase());
                 case 'all':
                     return post.title.toLowerCase().includes(keyword.toLowerCase()) ||
-                        post.content.toLowerCase().includes(keyword.toLowerCase());
+                        post.content.toLowerCase().includes(keyword.toLowerCase()) ||
+                        (post.userName && post.userName.toLowerCase().includes(keyword.toLowerCase()));
                 default:
                     return true;
             }
@@ -643,12 +553,13 @@
 
         if (filteredData.length === 0) {
             alert('검색 결과가 없습니다.');
+            loadBoardData(currentPage, currentCategory);
         } else {
             alert(`"${keyword}" 검색 결과: ${filteredData.length}개 게시글`);
         }
     }
 
-    // ✅ 카테고리 필터링
+    // 카테고리 필터링
     function filterByCategory(category) {
         currentCategory = category;
 
@@ -657,142 +568,140 @@
         });
         document.querySelector(`[data-category="${category}"]`).classList.add('active');
 
-        // 카테고리 변경 시 첫 페이지부터 다시 로드
         loadBoardData(0, category);
     }
 
-    // ✅ 게시판 렌더링
+    // 게시판 렌더링
     function renderBoard(data) {
         const tbody = document.getElementById('boardTableBody');
         tbody.innerHTML = '';
 
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">게시글이 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 50px;">게시글이 없습니다.</td></tr>';
             return;
         }
 
         data.forEach(post => {
             const row = document.createElement('tr');
-            row.setAttribute('data-category', post.category || '');
 
-            // 카테고리에 따른 뱃지
             let categoryBadge = '';
-            if (post.category === '공지사항') {
-                categoryBadge = '<span class="notice-badge" style="background: #ff4444; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px;">공지</span>';
-            } else if (post.category === '도서리뷰') {
-                categoryBadge = '<span class="notice-badge" style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px;">리뷰</span>';
+            if (post.category === 'notice') {
+                categoryBadge = '<span class="notice-badge">공지</span>';
+            } else if (post.category === 'review') {
+                categoryBadge = '<span class="notice-badge" style="background: linear-gradient(45deg, #4CAF50, #81C784);">리뷰</span>';
             }
 
+            const authorName = post.userName || '알 수 없음';
+
             row.innerHTML = `
-                <td class="number">${post.boardId}</td>
-                <td class="title">
-                    ${categoryBadge}
-                    <a href="boardView.html?id=${post.boardId}" onclick="viewPost(${post.boardId})">${post.title}</a>
-                </td>
-                <td class="author">${post.userId}</td>
-                <td class="date">${formatDate(post.createdAt)}</td>
-                <td class="views">${post.views || 0}</td>
-            `;
+            <td class="number">${post.boardId}</td>
+            <td class="title">
+                ${categoryBadge}
+                <a href="boardView.html?id=${post.boardId}">${escapeHtml(post.title)}</a>
+            </td>
+            <td class="author">${escapeHtml(authorName)}</td>
+            <td class="date">${formatDate(post.createdAt)}</td>
+        `;
 
             tbody.appendChild(row);
         });
     }
 
-    // ✅ 날짜 포맷팅
+    // HTML 이스케이프
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 날짜 포맷팅
     function formatDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return `${month}-${day}`;
     }
 
-    // ✅ 게시판 정보 업데이트
+    // 게시판 정보 업데이트
     function updateBoardInfo() {
         document.querySelector('.total-posts').textContent = `Total ${totalItems} / ${totalPages}개 페이지`;
     }
 
-    // ✅ 게시글 조회수 증가 (선택사항 - 백엔드 API 필요)
-    function viewPost(id) {
-        // 필요시 서버에 조회수 증가 API 호출
-        // fetch(`/api/board/${id}/view`, { method: 'POST' });
-    }
-
-    // ✅ 페이지 이동
+    // 페이지 이동
     function goToPage(page) {
         if (page < 0 || page >= totalPages) return;
         loadBoardData(page, currentCategory);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ✅ 이전 페이지
+    // 이전 페이지
     function prevPage() {
         if (currentPage > 0) {
             goToPage(currentPage - 1);
         }
     }
 
-    // ✅ 다음 페이지
+    // 다음 페이지
     function nextPage() {
         if (currentPage < totalPages - 1) {
             goToPage(currentPage + 1);
         }
     }
 
-    // ✅ 페이지네이션 업데이트
+    // 페이지네이션 업데이트
     function updatePagination() {
         const pagination = document.querySelector('.pagination');
         let paginationHTML = '';
 
-        // 처음 버튼
         paginationHTML += `
-            <a href="#" class="page-btn ${currentPage === 0 ? 'disabled' : ''}"
-               onclick="event.preventDefault(); goToPage(0);">처음</a>
-        `;
+        <a href="#" class="page-btn ${currentPage === 0 ? 'disabled' : ''}"
+           onclick="event.preventDefault(); if(${currentPage} > 0) goToPage(0);">처음</a>
+    `;
 
-        // 이전 버튼
         paginationHTML += `
-            <a href="#" class="page-btn ${currentPage === 0 ? 'disabled' : ''}"
-               onclick="event.preventDefault(); prevPage();">이전</a>
-        `;
+        <a href="#" class="page-btn ${currentPage === 0 ? 'disabled' : ''}"
+           onclick="event.preventDefault(); prevPage();">이전</a>
+    `;
 
-        // 페이지 번호 (최대 5개씩 표시)
         let startPage = Math.max(0, currentPage - 2);
         let endPage = Math.min(totalPages - 1, startPage + 4);
 
-        // startPage 조정 (끝에서 5개 미만일 때)
         if (endPage - startPage < 4) {
             startPage = Math.max(0, endPage - 4);
         }
 
         for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
-                <a href="#" class="page-btn ${i === currentPage ? 'active' : ''}"
-                   onclick="event.preventDefault(); goToPage(${i});">${i + 1}</a>
-            `;
+            <a href="#" class="page-btn ${i === currentPage ? 'active' : ''}"
+               onclick="event.preventDefault(); goToPage(${i});">${i + 1}</a>
+        `;
         }
 
-        // 다음 버튼
         paginationHTML += `
-            <a href="#" class="page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}"
-               onclick="event.preventDefault(); nextPage();">다음</a>
-        `;
+        <a href="#" class="page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}"
+           onclick="event.preventDefault(); nextPage();">다음</a>
+    `;
 
-        // 마지막 버튼
         paginationHTML += `
-            <a href="#" class="page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}"
-               onclick="event.preventDefault(); goToPage(${totalPages - 1});">마지막</a>
-        `;
+        <a href="#" class="page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}"
+           onclick="event.preventDefault(); if(${currentPage} < ${totalPages - 1}) goToPage(${totalPages - 1});">마지막</a>
+    `;
 
         pagination.innerHTML = paginationHTML;
     }
 
-    // ✅ 초기화
+    // 초기화
     document.addEventListener('DOMContentLoaded', function() {
-        // RDS 데이터 불러오기
-        loadBoardData(0, 'all');
+        // ✅ state.js 사용
+        setTimeout(() => {
+            if (typeof State !== 'undefined') {
+                State.checkAuthStatus();
+                currentUser = State.getCurrentUser();
+            }
+            loadBoardData(0, 'all');
+        }, 100);
 
-        // 카테고리 버튼 이벤트
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const category = this.getAttribute('data-category');
@@ -800,7 +709,6 @@
             });
         });
 
-        // 검색 입력창 엔터키 이벤트
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('keypress', function(e) {
@@ -811,7 +719,6 @@
         }
     });
 </script>
-
 
 <!-- 푸터 -->
 <footer>
@@ -868,8 +775,6 @@
         </div>
     </div>
 </footer>
-
-
 
 </body>
 </html>
