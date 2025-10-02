@@ -352,4 +352,41 @@ public class BookController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PostMapping("/reservation/cancel/{reservationId}")
+    public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable Long reservationId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Reservation> reservationOpt = reservationRepository.findById(reservationId);
+            if (!reservationOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "예약 기록을 찾을 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Reservation reservation = reservationOpt.get();
+
+            // 이미 취소된 예약인지 확인
+            if ("CANCELLED".equals(reservation.getStatus())) {
+                response.put("success", false);
+                response.put("message", "이미 취소된 예약입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 예약 취소 처리
+            reservation.setStatus("CANCELLED");
+            reservationRepository.save(reservation);
+
+            response.put("success", true);
+            response.put("message", "예약이 취소되었습니다.");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "예약 취소 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
 }
