@@ -47,6 +47,8 @@
             color: #666;
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .post-content {
@@ -60,6 +62,7 @@
             justify-content: flex-end;
             gap: 1rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -69,27 +72,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
-        }
-
-        .btn-like {
-            display: inline-flex;               /* flex로 변경 */
-            align-items: center;                /* 세로 중앙 정렬 */
-            justify-content: center;
-            gap: 0.4rem;
-            background: linear-gradient(45deg, #ff99cc, #ffe066);
-            color: #d63384;
-        }
-        #likeCount {
-            display: inline-flex;
-            align-items: center;
-            line-height: 1;
-            position: relative;
-            top: 1.3px;
-        }
-
-        .btn-like:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(255, 179, 217, 0.3);
         }
 
         .btn-back {
@@ -102,66 +84,34 @@
             color: white;
         }
 
-        .btn-edit {
+        .btn-edit, .btn-save {
             background: linear-gradient(45deg, #ffe066, #ff99cc);
             color: #d63384;
         }
-        .btn-edit:hover {
+
+        .btn-edit:hover, .btn-save:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(255, 179, 217, 0.3);
         }
 
-
-        /* 댓글 */
-        .comments-section {
-            margin-top: 2rem;
+        .btn-delete {
+            background: linear-gradient(45deg, #ff6b6b, #ff99cc);
+            color: white;
         }
 
-        .comments-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #d63384;
-            margin-bottom: 1rem;
-        }
-
-        .comment {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 15px;
-            padding: 0.8rem 1rem;
-            margin-bottom: 0.8rem;
-        }
-
-        .comment-meta {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 0.3rem;
-        }
-
-        .comment-form textarea {
-            width: 100%;
-            border-radius: 15px;
-            border: 2px solid rgba(255, 179, 217, 0.3);
-            padding: 0.8rem;
-            resize: vertical;
-            font-family: inherit;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .comment-form button {
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 20px;
-            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
-            color: #d63384;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .comment-form button:hover {
+        .btn-delete:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(255, 179, 217, 0.3);
+            box-shadow: 0 8px 20px rgba(255, 99, 99, 0.3);
+        }
+
+        .btn-cancel {
+            background: #ccc;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #999;
+            color: white;
         }
     </style>
 </head>
@@ -183,126 +133,272 @@
 <div class="container">
     <div class="board-card">
         <div class="post-header">
-            <h2 class="post-title" id="postTitle">게시글 제목 예시</h2>
+            <div id="categoryDisplay" style="display: inline-block; background: #ffb3d9; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.85rem; margin-bottom: 0.5rem;"></div>
+            <h2 class="post-title" id="postTitle">게시글 제목</h2>
             <div class="post-meta">
-                <span>작성자: <b id="postAuthor">관리자</b></span>
-                <span>날짜: <span id="postDate">2025-09-10</span></span>
-                <span>조회수: <span id="postViews">12</span></span>
+                <span id="postAuthor">작성자: -</span>
+                <span id="postDate">날짜: -</span>
+                <span id="postViews">조회수: 0</span>
             </div>
         </div>
 
         <div class="post-content" id="postContent">
-            여기에 게시글 본문 내용이 표시됩니다.
-            여러 줄도 자연스럽게 표시 가능.
+            로딩 중...
         </div>
 
-        <div class="post-actions" id="postActions">
-            <button class="btn btn-like" onclick="likePost()">❤️ 좋아요 <span id="likeCount">0</span></button>
+        <!-- ✅ 여기에 추가! -->
+        <div id="fileSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(255, 179, 217, 0.2);">
+            <h4 style="color: #d63384; margin-bottom: 10px;">📎 첨부 파일</h4>
+            <div id="fileContainer"></div>
+        </div>
+
+        <div class="post-actions">
             <button class="btn btn-back" onclick="goBack()">목록으로</button>
-            <!-- 수정 버튼은 JS에서 동적 생성 -->
-        </div>
-
-
-        <!-- 댓글 -->
-        <div class="comments-section">
-            <h3 class="comments-title">댓글</h3>
-            <div id="commentList">
-                <div class="comment">
-                    <div class="comment-meta">익명 · 2025-09-10</div>
-                    <div class="comment-text">좋은 글이네요!</div>
-                </div>
-            </div>
-
-            <div class="comment-form" id="commentFormWrapper">
-                <textarea id="commentInput" rows="3" placeholder="댓글을 입력하세요"></textarea>
-                <button onclick="addComment()">댓글 등록</button>
-            </div>
+            <button class="btn btn-edit" id="editBtn" style="display: none;" onclick="enableEditMode()">수정</button>
+            <button class="btn btn-delete" id="deleteBtn" style="display: none;" onclick="deleteBoard()">삭제</button>
+            <button class="btn btn-save" id="saveBtn" style="display: none;" onclick="saveBoard()">저장</button>
+            <button class="btn btn-cancel" id="cancelBtn" style="display: none;" onclick="cancelEdit()">취소</button>
         </div>
     </div>
 </div>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get('id');
-    const loggedInUser = localStorage.getItem("username"); // 로그인 시 저장한 사용자명
+    // ✅ state.js 로드
+    const s = document.createElement('script');
+    s.src = '/js/state.js';
+    document.head.appendChild(s);
 
+    let currentBoardId = null;
+    let currentUserId = null;
+    let currentUserName = null;
+    let originalBoard = null;
 
-    // 임시 데이터 (실제로는 서버에서 가져옴)
-    const samplePost = {
-        id: postId,
-        title: "샘플 게시글 " + postId,
-        author: "관리자",
-        date: "2025-09-10",
-        views: 25,
-        likes: 5,
-        content: "이것은 게시글 본문입니다.\n줄바꿈도 가능합니다.\n게시글 번호: " + postId
-    };
+    // 페이지 로드 시 게시글 조회
+    document.addEventListener('DOMContentLoaded', function() {
+        // ✅ state.js 사용
+        setTimeout(() => {
+            if (typeof State !== 'undefined') {
+                State.checkAuthStatus();
+                const user = State.getCurrentUser();
 
-    document.getElementById("postTitle").textContent = samplePost.title;
-    document.getElementById("postAuthor").textContent = samplePost.author;
-    document.getElementById("postDate").textContent = samplePost.date;
-    document.getElementById("postViews").textContent = samplePost.views;
-    document.getElementById("likeCount").textContent = samplePost.likes;
-    document.getElementById("postContent").textContent = samplePost.content;
+                if (user) {
+                    currentUserId = user.userId;
+                    currentUserName = user.username;
+                    console.log('로그인 사용자:', currentUserId, currentUserName);
+                }
+            }
 
-    // 로그인 사용자 == 작성자이면 수정 버튼 표시
-    if (loggedInUser && loggedInUser === samplePost.author) {
-        showEditButton(postId);
+            const urlParams = new URLSearchParams(window.location.search);
+            currentBoardId = urlParams.get('id');
+
+            if (currentBoardId) {
+                loadBoardDetail(currentBoardId);
+            } else {
+                alert('잘못된 접근입니다.');
+                location.href = 'board.html';
+            }
+        }, 100);
+    });
+
+    // 게시글 상세 불러오기
+    async function loadBoardDetail(boardId) {
+        try {
+            const response = await fetch(`/api/board/list/${boardId}`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('게시글을 불러올 수 없습니다.');
+            }
+
+            const board = await response.json();
+            originalBoard = board;
+            displayBoard(board);
+        } catch (error) {
+            console.error(error);
+            alert('게시글을 불러오는 중 오류가 발생했습니다.');
+            location.href = 'board.html';
+        }
     }
 
-    // 좋아요 기능
-    function likePost() {
-        let count = parseInt(document.getElementById("likeCount").textContent);
-        document.getElementById("likeCount").textContent = count + 1;
-        alert("좋아요를 눌렀습니다!");
+    // 게시글 화면에 표시
+    function displayBoard(board) {
+        document.getElementById('categoryDisplay').textContent = board.category;
+        document.getElementById('postTitle').textContent = board.title;
+
+        // 파일 안되는 오류 확인용
+        console.log("게시글 파일 배열:", board.files);
+
+        // ✅ 작성자 이름 표시
+        const authorName = board.userName || '알 수 없음';
+        document.getElementById('postAuthor').textContent = `작성자: ${authorName}`;
+
+        document.getElementById('postDate').textContent = `작성일: ${formatDate(board.createdAt)}`;
+        document.getElementById('postViews').textContent = `조회수: ${board.views}`;
+        document.getElementById('postContent').innerHTML = board.content.replace(/\n/g, '<br>');
+
+        // ✅ 첨부파일 표시
+        if (board.files && board.files.length > 0) {
+            const fileContainer = document.createElement('div');
+            fileContainer.style.marginTop = "20px";
+
+            board.files.forEach(file => {
+                if (file.fileUrl) {
+                    // 이미지 파일이면 미리보기
+                    if (/\.(jpg|jpeg|png|gif)$/i.test(file.fileName)) {
+                        const img = document.createElement('img');
+                        img.src = file.fileUrl;  // DB에 저장된 /files/UUID_filename
+                        img.alt = file.fileName;
+                        img.style.maxWidth = "400px";
+                        img.style.display = "block";
+                        img.style.marginBottom = "10px";
+                        fileContainer.appendChild(img);
+                    }
+                    // 그 외는 다운로드 링크
+                    else {
+                        const link = document.createElement('a');
+                        link.href = file.fileUrl;
+                        link.textContent = `📎 ${file.fileName}`;
+                        link.download = file.fileName;
+                        fileContainer.appendChild(link);
+                        fileContainer.appendChild(document.createElement('br'));
+                    }
+                }
+            });
+
+            document.getElementById('postContent').appendChild(fileContainer);
+        }
+
+
+        // ✅ 수정/삭제 버튼 표시 제어
+        console.log('게시글 userId:', board.userId, '현재 userId:', currentUserId);
+        if (currentUserId && board.userId === currentUserId) {
+            document.getElementById('editBtn').style.display = 'inline-block';
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+        }
     }
 
-    function showEditButton(postId) {
-        const actions = document.getElementById("postActions");
-        const editBtn = document.createElement("button");
-        editBtn.className = "btn btn-edit";
-        editBtn.textContent = "수정";
-        editBtn.onclick = function() {
-            window.location.href = `boardEdit.html?id=${postId}`;
-        };
-        actions.appendChild(editBtn);
+    // 날짜 포맷팅
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
 
+    // 수정 모드로 전환
+    function enableEditMode() {
+        const content = document.getElementById('postContent').innerHTML.replace(/<br>/g, '\n');
 
-    // 댓글 등록
-    function addComment() {
-        const commentInput = document.getElementById("commentInput");
-        const text = commentInput.value.trim();
+        document.getElementById('categoryDisplay').innerHTML = `
+            <select id="editCategory" style="padding: 5px; border-radius: 10px; border: 2px solid #ffb3d9;">
+                <option value="notice" ${originalBoard.category === 'notice' ? 'selected' : ''}>공지사항</option>
+                <option value="free" ${originalBoard.category === 'free' ? 'selected' : ''}>자유게시판</option>
+                <option value="review" ${originalBoard.category === 'review' ? 'selected' : ''}>도서리뷰</option>
+            </select>
+        `;
 
-        if (!text) {
-            alert("댓글을 입력해주세요.");
+        document.getElementById('postTitle').innerHTML = `
+            <input type="text" id="editTitle" value="${originalBoard.title}" style="width: 100%; padding: 8px; font-size: 1.5rem; border: 2px solid #ffb3d9; border-radius: 10px;">
+        `;
+
+        document.getElementById('postContent').innerHTML = `
+            <textarea id="editContent" style="width: 100%; min-height: 300px; padding: 10px; border: 2px solid #ffb3d9; border-radius: 10px; font-size: 1rem;">${content}</textarea>
+            <input type="file" id="editFile" accept="image/*" style="margin-top: 10px;">
+        `;
+
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('deleteBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'inline-block';
+        document.getElementById('cancelBtn').style.display = 'inline-block';
+    }
+
+    // 수정 취소
+    function cancelEdit() {
+        displayBoard(originalBoard);
+        document.getElementById('editBtn').style.display = 'inline-block';
+        document.getElementById('deleteBtn').style.display = 'inline-block';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+    // 게시글 수정 저장
+    async function saveBoard() {
+        const title = document.getElementById('editTitle').value.trim();
+        const category = document.getElementById('editCategory').value;
+        const content = document.getElementById('editContent').value.trim();
+        const fileInput = document.getElementById('editFile');
+
+        if (!title || !content) {
+            alert('제목과 내용을 입력해주세요.');
             return;
         }
 
-        const commentList = document.getElementById("commentList");
-        const newComment = document.createElement("div");
-        newComment.classList.add("comment");
-        newComment.innerHTML = `
-      <div class="comment-meta">나 · 방금 전</div>
-      <div class="comment-text">${text}</div>
-    `;
-        commentList.appendChild(newComment);
+        const formData = new FormData();
+        formData.append('userId', currentUserId);
+        formData.append('category', category);
+        formData.append('title', title);
+        formData.append('content', content);
 
-        commentInput.value = "";
-    }
-
-    // 목록으로
-    function goBack() {
-        window.location.href = "board.html";
-    }
-
-    // 로그인 상태 체크
-    document.addEventListener("DOMContentLoaded", () => {
-        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-        if (!isLoggedIn) {
-            document.getElementById("commentFormWrapper").style.display = "none";
+        if (fileInput.files.length > 0) {
+            formData.append('file', fileInput.files[0]);
         }
-    });
+
+        try {
+            const response = await fetch(`/api/board/${currentBoardId}`, {
+                method: 'PUT',
+                body: formData,
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || '수정에 실패했습니다.');
+            }
+
+            alert('게시글이 수정되었습니다.');
+            location.reload();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    }
+
+    // 게시글 삭제
+    async function deleteBoard() {
+        if (!confirm('정말 삭제하시겠습니까?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/board/${currentBoardId}?userId=${currentUserId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || '삭제에 실패했습니다.');
+            }
+
+            alert('게시글이 삭제되었습니다.');
+            location.href = 'board.html';
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    }
+
+    // 목록으로 돌아가기
+    function goBack() {
+        location.href = 'board.html';
+    }
 
     // 로그아웃 기능
     function logout() {
@@ -313,96 +409,18 @@
             window.location.href = 'index.html';
         }
     }
-
-    // 로그인 상태 체크 및 헤더 업데이트
-    function updateHeaderForLogin() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const mypageBtn = document.getElementById('mypageBtn');
-        const adminBtn = document.getElementById('adminBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        if (isLoggedIn) {
-            // 로그인된 상태
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (mypageBtn) mypageBtn.style.display = 'inline-block';
-            if (logoutBtn) logoutBtn.style.display = 'inline-block';
-            
-            // 관리자 체크
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'ADMIN' && adminBtn) {
-                adminBtn.style.display = 'inline-block';
-            }
-        } else {
-            // 로그인되지 않은 상태
-            if (loginBtn) loginBtn.style.display = 'inline-block';
-            if (signupBtn) signupBtn.style.display = 'inline-block';
-            if (mypageBtn) mypageBtn.style.display = 'none';
-            if (adminBtn) adminBtn.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-        }
-    }
-
-    // 페이지 로드 시 헤더 업데이트
-    document.addEventListener('DOMContentLoaded', function() {
-        updateHeaderForLogin();
-    });
 </script>
 
-<!-- 푸터 -->
 <footer>
     <div class="footer-content">
         <div class="footer-main">
             <div class="footer-section">
                 <h4>📚 KIRBY 도서관</h4>
                 <p>지식과 꿈이 만나는 공간</p>
-                <div class="footer-contact">
-                    <p><strong>주소:</strong> 서울시 강남구 도서관로 123</p>
-                    <p><strong>전화:</strong> 02-1234-5678</p>
-                    <p><strong>이메일:</strong> info@kirbylibrary.kr</p>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>🔗 빠른 링크</h4>
-                <ul>
-                    <li><a href="books.html">도서목록</a></li>
-                    <li><a href="board.html">게시판</a></li>
-                    <li><a href="login.html">로그인</a></li>
-                    <li><a href="signup.html">회원가입</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>📖 서비스</h4>
-                <ul>
-                    <li><a href="#">도서 대출</a></li>
-                    <li><a href="#">예약 서비스</a></li>
-                    <li><a href="#">독서 모임</a></li>
-                    <li><a href="#">문화 행사</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>📞 문의</h4>
-                <ul>
-                    <li><a href="#">자주 묻는 질문</a></li>
-                    <li><a href="#">이용 안내</a></li>
-                    <li><a href="#">개인정보처리방침</a></li>
-                    <li><a href="#">이용약관</a></li>
-                </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <div class="footer-info">
-                <p>© 2025 KIRBY 도서관. All rights reserved.</p>
-                <p>사업자등록번호: 123-45-67890 | 대표: 김도서</p>
-            </div>
-            <div class="footer-social">
-                <a href="#" class="social-link">📘</a>
-                <a href="#" class="social-link">📷</a>
-                <a href="#" class="social-link">🐦</a>
-                <a href="#" class="social-link">📺</a>
-            </div>
+            <p>© 2025 KIRBY 도서관. All rights reserved.</p>
         </div>
     </div>
 </footer>

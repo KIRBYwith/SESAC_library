@@ -13,7 +13,8 @@ import java.util.stream.Collectors;
 @Setter
 public class BoardResponse {
     private Long boardId;
-    private Integer userId;
+    private Long userId; // ✅ Integer → Long 변경
+    private String userName; // ✅ 작성자 이름 추가
     private String category;
     private String title;
     private String content;
@@ -21,31 +22,23 @@ public class BoardResponse {
     private Integer views;
     private List<String> fileUrls;
 
-    public static BoardResponse from(Board board) {
+    public static BoardResponse from(Board board, String userName) {
         BoardResponse response = new BoardResponse();
         response.setBoardId(board.getBoardId());
         response.setUserId(board.getUserId());
+        response.setUserName(userName); // ✅ 작성자 이름 설정
         response.setCategory(board.getCategory());
         response.setTitle(board.getTitle());
         response.setContent(board.getContent());
         response.setCreatedAt(board.getCreatedAt());
         response.setViews(board.getViews());
 
-        /* 이전
-        if (board.getFiles() != null && !board.getFiles().isEmpty()) {
-            response.setFileUrls(board.getFiles().stream()
-                    .map(BoardFile::getFileUrl)
-                    .collect(Collectors.toList()));
-        }
-        */
-
-        // 수정
         if (board.getFiles() != null) {
             response.setFileUrls(board.getFiles().stream()
                     .map(BoardFile::getFileUrl)
                     .collect(Collectors.toList()));
         } else {
-            response.setFileUrls(List.of()); // null 대신 빈 리스트
+            response.setFileUrls(List.of());
         }
 
         return response;

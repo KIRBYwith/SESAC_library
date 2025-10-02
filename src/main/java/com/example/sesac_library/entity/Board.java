@@ -21,7 +21,7 @@ public class Board {
     private Long boardId;
 
     @Column(name = "user_id", nullable = false)
-    private Integer userId; // DB에서 INT로 정의됨
+    private Long userId; // ✅ Integer → Long 변경 (User 테이블의 user_id가 BIGINT)
 
     @Column(nullable = false, length = 50)
     private String category;
@@ -39,7 +39,7 @@ public class Board {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private Integer views = 0; // Integer로 통일
+    private Integer views = 0;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<BoardFile> files;
