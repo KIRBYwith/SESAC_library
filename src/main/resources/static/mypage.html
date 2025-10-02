@@ -475,10 +475,22 @@
                 if (!confirm("예약을 취소하시겠습니까?")) return;
 
                 try {
-                  // 여기에 예약 취소 API 호출 추가 (나중에 구현)
-                  alert("예약 취소 기능은 추후 구현 예정입니다.");
-                  // 임시로 테이블 새로고침
-                  renderReservationTable();
+                  const response = await fetch(`/api/books/reservation/cancel/${reservationId}`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                  });
+
+                  const result = await response.json();
+
+                  if (result.success) {
+                    alert(result.message);
+                    renderReservationTable(); // 예약 목록 새로고침
+                  } else {
+                    alert(result.message || "예약 취소 처리에 실패했습니다.");
+                  }
                 } catch (error) {
                   console.error("예약 취소 처리 중 오류:", error);
                   alert("예약 취소 처리 중 오류가 발생했습니다.");
@@ -492,7 +504,7 @@
         }
       }
 
-      exchangeBtn.addEventListener("click", () => {
+      exchangeBtn.addEventListener("click", async () => {
         const user = JSON.parse(localStorage.getItem("user") || "null");
         if (!user) {
           alert("로그인 후 이용 가능합니다.");
@@ -502,12 +514,29 @@
           alert("포인트가 부족합니다. (5000 필요)");
           return;
         }
-        user.points -= 5000;
-        localStorage.setItem("user", JSON.stringify(user));
-        // 요청 적재
-        if (window.State) State.addExchangeRequest(user.email, user.name, 5000);
-        alert("교환 신청이 접수되었습니다.");
-        renderTable();
+
+        try {
+          const response = await fetch("/api/auth/exchange-voucher", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            alert(result.message);
+            await loadUserInfo(); // 포인트 정보 업데이트
+            renderTable(); // 테이블 새로고침
+          } else {
+            alert(result.message || "교환 처리에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("교환 처리 중 오류:", error);
+          alert("교환 처리 중 오류가 발생했습니다.");
+        }
       });
 
       function editUserInfo() {
