@@ -113,8 +113,12 @@ public class BookController {
             book.setBookCopies(book.getBookCopies() - 1);
             bookRepository.save(book);
 
+            // 대출 시 100포인트 지급
+            user.setPoints(user.getPoints() + 100);
+            userRepository.save(user);
+
             response.put("success", true);
-            response.put("message", "대출이 완료되었습니다.");
+            response.put("message", "대출이 완료되었습니다. (+100포인트)");
             response.put("dueDate", loan.getDueDate());
 
             return ResponseEntity.ok(response);
@@ -222,6 +226,64 @@ public class BookController {
         return ResponseEntity.ok(stats);
     }
 
+    @PostMapping("/return/{loanId}")
+    public ResponseEntity<Map<String, Object>> returnBook(@PathVariable Long loanId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Loan> loanOpt = loanRepository.findById(loanId);
+            if (!loanOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "대출 기록을 찾을 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Loan loan = loanOpt.get();
+
+            // 이미 반납된 책인지 확인
+            if ("RETURNED".equals(loan.getStatus())) {
+                response.put("success", false);
+                response.put("message", "이미 반납된 책입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Optional<Book> bookOpt = bookRepository.findById(loan.getBookId());
+            Optional<User> userOpt = userRepository.findById(loan.getUserId());
+
+            if (!bookOpt.isPresent() || !userOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "책 또는 사용자 정보를 찾을 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Book book = bookOpt.get();
+            User user = userOpt.get();
+
+            // 반납 처리
+            loan.returnBook();
+            loanRepository.save(loan);
+
+            // 책 재고 증가
+            book.setBookCopies(book.getBookCopies() + 1);
+            bookRepository.save(book);
+
+            // 반납 시 50포인트 지급
+            user.setPoints(user.getPoints() + 50);
+            userRepository.save(user);
+
+            response.put("success", true);
+            response.put("message", "반납이 완료되었습니다. (+50포인트)");
+            response.put("returnedAt", loan.getReturnedAt());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "반납 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
     @GetMapping("/user/{userId}/loans")
     public ResponseEntity<List<Map<String, Object>>> getUserLoans(@PathVariable Long userId) {
         try {
@@ -288,6 +350,43 @@ public class BookController {
             return ResponseEntity.ok(reservationDetails);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/reservation/cancel/{reservationId}")
+    public ResponseEntity<Map<String, Object>> cancelReservation(@PathVariable Long reservationId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Reservation> reservationOpt = reservationRepository.findById(reservationId);
+            if (!reservationOpt.isPresent()) {
+                response.put("success", false);
+                response.put("message", "예약 기록을 찾을 수 없습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Reservation reservation = reservationOpt.get();
+
+            // 이미 취소된 예약인지 확인
+            if ("CANCELLED".equals(reservation.getStatus())) {
+                response.put("success", false);
+                response.put("message", "이미 취소된 예약입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 예약 취소 처리
+            reservation.setStatus("CANCELLED");
+            reservationRepository.save(reservation);
+
+            response.put("success", true);
+            response.put("message", "예약이 취소되었습니다.");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "예약 취소 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 }

@@ -273,6 +273,7 @@
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
       }
 
@@ -503,7 +504,7 @@
           localStorage.removeItem("isLoggedIn");
           localStorage.removeItem("user");
           alert("로그아웃 되었습니다.");
-          location.reload();
+          window.location.href = "index.html";
         }
       }
 

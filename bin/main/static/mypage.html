@@ -22,7 +22,7 @@
       }
 
       .main-container {
-        max-width: 900px;
+        max-width: 1200px;
         margin: 2rem auto;
         padding: 0 2rem;
       }
@@ -155,8 +155,8 @@
 
       <div class="user-info">
         <div>
-          <p>아이디: <span id="userId">user123</span></p>
-          <p>이메일: <span id="userEmail">hong@example.com</span></p>
+          <p>아이디: <span id="userId"></span></p>
+          <p>이메일: <span id="userEmail"></span></p>
           <p>내 포인트: <span id="userPoints">0</span></p>
         </div>
         <button class="btn-edit" onclick="editUserInfo()">회원정보 수정</button>
@@ -397,10 +397,23 @@
                 if (!confirm("반납하시겠습니까?")) return;
 
                 try {
-                  // 여기에 반납 API 호출 추가 (나중에 구현)
-                  alert("반납 기능은 추후 구현 예정입니다.");
-                  // 임시로 테이블 새로고침
-                  renderTable();
+                  const response = await fetch(`/api/books/return/${loanId}`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                  });
+
+                  const result = await response.json();
+
+                  if (result.success) {
+                    alert(result.message);
+                    await loadUserInfo(); // 포인트 정보 업데이트
+                    renderTable(); // 대출 목록 새로고침
+                  } else {
+                    alert(result.message || "반납 처리에 실패했습니다.");
+                  }
                 } catch (error) {
                   console.error("반납 처리 중 오류:", error);
                   alert("반납 처리 중 오류가 발생했습니다.");
@@ -462,10 +475,22 @@
                 if (!confirm("예약을 취소하시겠습니까?")) return;
 
                 try {
-                  // 여기에 예약 취소 API 호출 추가 (나중에 구현)
-                  alert("예약 취소 기능은 추후 구현 예정입니다.");
-                  // 임시로 테이블 새로고침
-                  renderReservationTable();
+                  const response = await fetch(`/api/books/reservation/cancel/${reservationId}`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                  });
+
+                  const result = await response.json();
+
+                  if (result.success) {
+                    alert(result.message);
+                    renderReservationTable(); // 예약 목록 새로고침
+                  } else {
+                    alert(result.message || "예약 취소 처리에 실패했습니다.");
+                  }
                 } catch (error) {
                   console.error("예약 취소 처리 중 오류:", error);
                   alert("예약 취소 처리 중 오류가 발생했습니다.");
@@ -479,7 +504,7 @@
         }
       }
 
-      exchangeBtn.addEventListener("click", () => {
+      exchangeBtn.addEventListener("click", async () => {
         const user = JSON.parse(localStorage.getItem("user") || "null");
         if (!user) {
           alert("로그인 후 이용 가능합니다.");
@@ -489,76 +514,66 @@
           alert("포인트가 부족합니다. (5000 필요)");
           return;
         }
-        user.points -= 5000;
-        localStorage.setItem("user", JSON.stringify(user));
-        // 요청 적재
-        if (window.State) State.addExchangeRequest(user.email, user.name, 5000);
-        alert("교환 신청이 접수되었습니다.");
-        renderTable();
+
+        try {
+          const response = await fetch("/api/auth/exchange-voucher", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            alert(result.message);
+            await loadUserInfo(); // 포인트 정보 업데이트
+            renderTable(); // 테이블 새로고침
+          } else {
+            alert(result.message || "교환 처리에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("교환 처리 중 오류:", error);
+          alert("교환 처리 중 오류가 발생했습니다.");
+        }
       });
 
       function editUserInfo() {
         window.location.href = "editUser.html";
       }
 
-      // 페이지 로드 시 사용자 정보를 먼저 로드한 후 테이블 렌더링
-      loadUserInfo().then((userData) => {
-        if (userData && userData.userId) {
-          renderTable();
-          renderReservationTable();
-        } else {
-          // 로컬 스토리지에서 사용자 정보가 있는 경우에도 렌더링 시도
-          const localUser = JSON.parse(localStorage.getItem("user") || "null");
-          if (localUser && localUser.userId) {
-            renderTable();
-            renderReservationTable();
-          }
-        }
-      });
-
-      // 로그인 상태 관리
-      document.addEventListener("DOMContentLoaded", function () {
+      // 로그인 상태 확인 및 페이지 접근 제한
+      function checkLoginStatus() {
         const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
         const user = JSON.parse(localStorage.getItem("user") || "null");
 
-        const loginBtn = document.getElementById("loginBtn");
-        const signupBtn = document.getElementById("signupBtn");
-        const mypageBtn = document.getElementById("mypageBtn");
-        const adminBtn = document.getElementById("adminBtn");
-
-        if (isLoggedIn && user) {
-          // 로그인 상태면 로그인 → 로그아웃으로 바꿈
-          loginBtn.textContent = "로그아웃";
-          loginBtn.href = "#";
-          loginBtn.addEventListener("click", function (e) {
-            e.preventDefault();
-            localStorage.removeItem("isLoggedIn");
-            localStorage.removeItem("user");
-            alert("로그아웃 되었습니다.");
-            window.location.href = "index.html";
-          });
-
-          // 회원가입 버튼 숨기기
-          if (signupBtn) signupBtn.style.display = "none";
-
-          // 마이페이지 버튼 보이기
-          if (mypageBtn) mypageBtn.style.display = "inline-block";
-
-          // 관리자 계정인 경우 관리자페이지 버튼 보이기
-          if (user.role === "ADMIN") {
-            if (adminBtn) adminBtn.style.display = "inline-block";
-          }
-        } else {
-          // 로그인 상태가 아니면 로그인 버튼을 login.html로 연결
-          if (loginBtn) {
-            loginBtn.href = "login.html";
-          }
-
-          // 마이페이지, 관리자페이지 버튼 숨기기
-          if (mypageBtn) mypageBtn.style.display = "none";
-          if (adminBtn) adminBtn.style.display = "none";
+        if (!isLoggedIn || !user) {
+          alert("로그인이 필요합니다.");
+          window.location.href = "login.html";
+          return false;
         }
-      });
+        return true;
+      }
+
+      // 페이지 로드 시 로그인 상태 확인 후 사용자 정보 로드
+      if (checkLoginStatus()) {
+        loadUserInfo().then((userData) => {
+          if (userData && userData.userId) {
+            renderTable();
+            renderReservationTable();
+          } else {
+            // 로컬 스토리지에서 사용자 정보가 있는 경우에도 렌더링 시도
+            const localUser = JSON.parse(
+              localStorage.getItem("user") || "null"
+            );
+            if (localUser && localUser.userId) {
+              renderTable();
+              renderReservationTable();
+            }
+          }
+        });
+      }
 
       // 로그아웃 기능
       function logout() {
@@ -569,6 +584,9 @@
           window.location.href = "index.html";
         }
       }
+
+      // 마이페이지 전용 로그아웃 함수 (중복 방지)
+      window.logout = logout;
 
       // 로그인 상태 체크 및 헤더 업데이트
       function updateHeaderForLogin() {
@@ -604,6 +622,18 @@
       // 페이지 로드 시 헤더 업데이트
       document.addEventListener("DOMContentLoaded", function () {
         updateHeaderForLogin();
+      });
+
+      // 페이지가 다시 포커스를 받을 때 포인트 정보 업데이트
+      window.addEventListener("focus", function () {
+        loadUserInfo();
+      });
+
+      // 페이지가 보일 때마다 포인트 정보 업데이트 (브라우저 탭 전환 시)
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          loadUserInfo();
+        }
       });
     </script>
 

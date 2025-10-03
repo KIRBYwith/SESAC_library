@@ -7,20 +7,26 @@
     <link rel="stylesheet" href="/css/style.css?v=20250118update" />
     <link rel="stylesheet" href="/css/events-footer.css?v=20250118events" />
     <style>
-      .container {
-        max-width: 1100px;
-        margin: 2rem auto;
-        padding: 0 1rem;
+      .container h2 {
+        color: white;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1rem;
+      .small {
+        color: white;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
       }
       .card {
+        width: 100%;
         background: rgba(255, 255, 255, 0.9);
-        padding: 1rem;
-        border-radius: 12px;
+        padding: 2rem;
+        border-radius: 25px;
+        box-shadow: 0 15px 40px rgba(255, 179, 217, 0.2);
+        border: 2px solid rgba(255, 179, 217, 0.1);
       }
       .card h3 {
         color: #d63384;
@@ -96,56 +102,45 @@
     </header>
 
     <main class="container">
-      <h2>관리자 페이지</h2>
-      <p class="small">간단한 로컬 상태 기반 관리 화면입니다.</p>
-
-      <div class="grid">
-        <section class="card">
-          <h3>대출 현황</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>도서ID</th>
-                <th>상태</th>
-                <th>대출자</th>
-                <th>조치</th>
-              </tr>
-            </thead>
-            <tbody id="loanTbody"></tbody>
-          </table>
-        </section>
-        <section class="card">
-          <h3>예약 큐</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>도서ID</th>
-                <th>예약자 목록</th>
-              </tr>
-            </thead>
-            <tbody id="reserveTbody"></tbody>
-          </table>
-        </section>
-        <section class="card">
-          <h3>포인트 교환 신청</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>사용자</th>
-                <th>포인트</th>
-                <th>상태</th>
-                <th>승인</th>
-              </tr>
-            </thead>
-            <tbody id="exchangeTbody"></tbody>
-          </table>
-        </section>
-      </div>
-
-      <div style="margin-top: 1rem">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+        "
+      >
+        <h2 style="margin: 0">관리자 페이지</h2>
         <a class="btn btn-outline" href="index.html">메인으로</a>
       </div>
+
+      <section class="card" style="margin-bottom: 2rem">
+        <h3>대출 현황</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>도서명</th>
+              <th>대출자</th>
+              <th>조치</th>
+            </tr>
+          </thead>
+          <tbody id="loanTbody"></tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h3>예약 큐</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>도서명</th>
+              <th>예약자</th>
+              <th>대출</th>
+            </tr>
+          </thead>
+          <tbody id="reserveTbody"></tbody>
+        </table>
+      </section>
     </main>
 
     <script>
@@ -202,82 +197,123 @@
 
       const loanTbody = document.getElementById("loanTbody");
       const reserveTbody = document.getElementById("reserveTbody");
-      const exchangeTbody = document.getElementById("exchangeTbody");
 
-      function render() {
-        const bookStatus = JSON.parse(
-          localStorage.getItem("bookStatus") || "{}"
-        );
-        loanTbody.innerHTML = "";
-        Object.entries(bookStatus).forEach(([id, s]) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${id}</td><td>${s.status}</td><td>${
-            s.loanedBy || ""
-          }</td><td>${
-            s.status === "대출중"
-              ? "<button class='btn' data-return=\"" +
-                id +
-                '">반납처리</button>'
-              : ""
-          }</td>`;
-          loanTbody.appendChild(tr);
-        });
+      // 대출 현황 조회
+      async function loadLoans() {
+        try {
+          const response = await fetch("/admin/api/loans");
+          if (!response.ok) {
+            throw new Error("Failed to load loans");
+          }
+          const loans = await response.json();
 
-        const queues = JSON.parse(
-          localStorage.getItem("reservationQueues") || "{}"
-        );
-        reserveTbody.innerHTML = "";
-        Object.entries(queues).forEach(([id, arr]) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${id}</td><td>${(arr || []).join(", ")}</td>`;
-          reserveTbody.appendChild(tr);
-        });
-
-        const requests = JSON.parse(
-          localStorage.getItem("exchangeRequests") || "[]"
-        );
-        exchangeTbody.innerHTML = "";
-        requests.forEach((r) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${r.id}</td><td>${r.name} (${r.email})</td><td>${
-            r.pointsUsed
-          }</td><td>${r.status}</td><td>${
-            r.status === "pending"
-              ? "<button class='btn' data-approve=\"" + r.id + '">승인</button>'
-              : ""
-          }</td>`;
-          exchangeTbody.appendChild(tr);
-        });
-
-        // 이벤트 바인딩
-        loanTbody.querySelectorAll("button[data-return]").forEach((b) => {
-          b.addEventListener("click", () => {
-            const id = parseInt(b.getAttribute("data-return"));
-            const st = JSON.parse(localStorage.getItem("bookStatus") || "{}");
-            st[id] = { status: "대출가능" };
-            localStorage.setItem("bookStatus", JSON.stringify(st));
-            render();
+          loanTbody.innerHTML = "";
+          loans.forEach((loan) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${loan.bookTitle || "알 수 없음"}</td>
+              <td>${loan.username || "알 수 없음"}</td>
+              <td><button class='btn' data-loan-id="${
+                loan.loanId
+              }">취소</button></td>
+            `;
+            loanTbody.appendChild(tr);
           });
-        });
 
-        exchangeTbody.querySelectorAll("button[data-approve]").forEach((b) => {
-          b.addEventListener("click", () => {
-            const id = parseInt(b.getAttribute("data-approve"));
-            const list = JSON.parse(
-              localStorage.getItem("exchangeRequests") || "[]"
-            );
-            const idx = list.findIndex((x) => x.id === id);
-            if (idx !== -1) {
-              list[idx].status = "approved";
-              localStorage.setItem("exchangeRequests", JSON.stringify(list));
-              alert("승인 완료");
-              render();
-            }
+          // 취소 버튼 이벤트
+          loanTbody.querySelectorAll("button[data-loan-id]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+              const loanId = btn.getAttribute("data-loan-id");
+              if (confirm("정말 반납 처리하시겠습니까?")) {
+                await forceReturn(loanId);
+              }
+            });
           });
-        });
+        } catch (error) {
+          console.error("Error loading loans:", error);
+        }
       }
 
-      render();
+      // 강제 반납
+      async function forceReturn(loanId) {
+        try {
+          const response = await fetch(`/admin/api/loans/${loanId}/return`, {
+            method: "POST",
+          });
+          const result = await response.json();
+          if (response.ok) {
+            alert(result.message);
+            loadLoans();
+            loadReservations();
+          } else {
+            alert(result.error || "반납 처리에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("Error returning loan:", error);
+          alert("반납 처리 중 오류가 발생했습니다.");
+        }
+      }
+
+      // 예약 큐 조회
+      async function loadReservations() {
+        try {
+          const response = await fetch("/admin/api/reservations");
+          if (!response.ok) {
+            throw new Error("Failed to load reservations");
+          }
+          const reservations = await response.json();
+
+          reserveTbody.innerHTML = "";
+          reservations.forEach((reservation) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${reservation.bookTitle || "알 수 없음"}</td>
+              <td>${reservation.username || "알 수 없음"}</td>
+              <td><button class='btn' data-reservation-id="${
+                reservation.reservationId
+              }">대출</button></td>
+            `;
+            reserveTbody.appendChild(tr);
+          });
+
+          // 대출 버튼 이벤트
+          reserveTbody
+            .querySelectorAll("button[data-reservation-id]")
+            .forEach((btn) => {
+              btn.addEventListener("click", async () => {
+                const reservationId = btn.getAttribute("data-reservation-id");
+                if (confirm("예약을 종료하고 대출 처리하시겠습니까?")) {
+                  await processLoan(reservationId);
+                }
+              });
+            });
+        } catch (error) {
+          console.error("Error loading reservations:", error);
+        }
+      }
+
+      // 예약자 대출 처리
+      async function processLoan(reservationId) {
+        try {
+          const response = await fetch(
+            `/admin/api/reservations/${reservationId}/loan`,
+            {
+              method: "POST",
+            }
+          );
+          const result = await response.json();
+          if (response.ok) {
+            alert(result.message);
+            loadLoans();
+            loadReservations();
+          } else {
+            alert(result.error || "대출 처리에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("Error processing loan:", error);
+          alert("대출 처리 중 오류가 발생했습니다.");
+        }
+      }
 
       // 로그아웃 기능
       function logout() {
@@ -285,7 +321,7 @@
           localStorage.removeItem("isLoggedIn");
           localStorage.removeItem("user");
           alert("로그아웃 되었습니다.");
-          location.reload();
+          window.location.href = "index.html";
         }
       }
 
@@ -320,9 +356,11 @@
         }
       }
 
-      // 페이지 로드 시 헤더 업데이트
+      // 페이지 로드 시 헤더 업데이트 및 초기 데이터 로드
       document.addEventListener("DOMContentLoaded", function () {
         updateHeaderForLogin();
+        loadLoans();
+        loadReservations();
       });
     </script>
 

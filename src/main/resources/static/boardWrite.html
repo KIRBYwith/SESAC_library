@@ -68,11 +68,6 @@
             </div>
 
             <div class="form-group">
-                <label for="author" class="required">작성자</label>
-                <input type="text" id="author" name="author" class="form-input" placeholder="작성자명" required>
-            </div>
-
-            <div class="form-group">
                 <label for="content" class="required">내용</label>
                 <textarea id="content" name="content" class="form-textarea" placeholder="게시글 내용을 입력하세요" required></textarea>
             </div>
@@ -81,11 +76,6 @@
                 <label for="files">파일 첨부</label>
                 <input type="file" id="files" name="files[]" class="form-file" multiple>
                 <div id="fileList"></div>
-            </div>
-
-            <div class="form-group">
-                <label for="password" class="required">비밀번호</label>
-                <input type="password" id="password" name="password" class="form-input" placeholder="수정/삭제용 비밀번호" required>
             </div>
 
             <div class="button-group">
@@ -110,28 +100,24 @@
     let currentUserName = null;
 
     // 페이지 로드 시 로그인 상태 확인
-    document.addEventListener('DOMContentLoaded', async function() {
-        // state.js 로딩 대기
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        if (typeof State !== 'undefined') {
-            // 서버에서 최신 사용자 정보 가져오기
-            const userData = await State.updateUserInfo();
-
-            if (userData && userData.authenticated) {
-                currentUserId = userData.userId;
-                currentUserName = userData.username;
-                console.log('로그인 사용자:', currentUserId, currentUserName);
-
-                // 헤더 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (typeof State !== 'undefined') {
                 State.checkAuthStatus();
-            } else {
-                console.log('비로그인 상태');
-                alert('로그인이 필요한 페이지입니다.');
-                location.href = 'login.html';
-                return;
+                const user = State.getCurrentUser();
+
+                if (user && user.authenticated) {
+                    currentUserId = user.userId;
+                    currentUserName = user.username;
+                    console.log('로그인 사용자:', currentUserId, currentUserName);
+                } else {
+                    console.log('비로그인 상태');
+                    alert('로그인이 필요한 페이지입니다.');
+                    location.href = 'login.html';
+                    return;
+                }
             }
-        }
+        }, 100);
     });
 
     // 선택된 파일 목록 표시
@@ -157,27 +143,21 @@
 
         const category = this.category.value;
         const title = this.title.value.trim();
-        const author = this.author.value.trim();
         const content = this.content.value.trim();
-        const password = this.password.value;
 
         // 유효성 검사
         if(!category){ alert('카테고리를 선택해주세요.'); return; }
         if(title.length < 2){ alert('제목을 2자 이상 입력해주세요.'); return; }
-        if(author.length < 2){ alert('작성자명을 2자 이상 입력해주세요.'); return; }
         if(content.length < 4){ alert('내용을 4자 이상 입력해주세요.'); return; }
-        if(password.length < 4){ alert('비밀번호를 4자 이상 입력해주세요.'); return; }
 
         const formData = new FormData();
-
-        // 로그인한 사용자의 실제 userId 사용
         formData.append("userId", currentUserId);
         formData.append("category", category);
         formData.append("title", title);
         formData.append("content", content);
-        formData.append("password_hash", password);
+        formData.append("password_hash", "default");
 
-        // 파일 여러 개 첨부 가능
+        // 파일 첨부
         Array.from(fileInput.files).forEach(file => {
             formData.append("file", file);
         });
@@ -186,34 +166,18 @@
             const response = await fetch("/api/board/write", {
                 method: "POST",
                 body: formData,
-                credentials: 'include' // 세션 쿠키 포함
+                credentials: 'include'
             });
 
             const responseText = await response.text();
-            console.log("서버 응답 원문:", responseText);
+            console.log("서버 응답:", responseText);
 
             if(!response.ok){
-                throw new Error("서버 오류 발생: " + response.status + " / " + responseText);
+                throw new Error("서버 오류 발생: " + response.status);
             }
 
             const result = JSON.parse(responseText);
-            console.log("응답 JSON:", result);
-
-            alert("게시글이 등록되었습니다! 글 번호: " + result.boardId);
-
-            // 포인트 지급 (+10)
-            if (window.State) {
-                const user = State.getCurrentUser();
-                if (user) {
-                    State.awardPoints(user, 10);
-                    alert('게시글 작성 보상: +10포인트');
-
-                    // 서버에도 포인트 업데이트 반영 (서버 API가 있다면)
-                    await State.updateUserInfo();
-                }
-            }
-
-            // 게시판으로 이동
+            alert("게시글이 등록되었습니다! (+100포인트)");
             window.location.href = 'board.html';
 
         } catch(err) {
