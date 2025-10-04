@@ -92,4 +92,48 @@ public class AuthController {
         response.put("authenticated", false);
         return ResponseEntity.status(401).body(response);
     }
+
+    /* 포인트로 문화상품권 교환 */
+    @PostMapping("/exchange-voucher")
+    public ResponseEntity<Map<String, Object>> exchangeVoucher(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        String username = (String) session.getAttribute("username");
+
+        if (username == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        Optional<User> userOpt = userService.findByUsername(username);
+        if (!userOpt.isPresent()) {
+            response.put("success", false);
+            response.put("message", "사용자를 찾을 수 없습니다.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        User user = userOpt.get();
+
+        if (user.getPoints() < 5000) {
+            response.put("success", false);
+            response.put("message", "포인트가 부족합니다. (5000 포인트 필요)");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            // 포인트 차감
+            user.setPoints(user.getPoints() - 5000);
+            userService.updateUser(user);
+
+            response.put("success", true);
+            response.put("message", "이메일 주소 " + user.getEmail() + "으로 문화상품권이 발송되었습니다.\n메일함을 확인해주세요.");
+            response.put("remainingPoints", user.getPoints());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "교환 처리 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
 }

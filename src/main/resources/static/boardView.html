@@ -399,6 +399,16 @@
     function goBack() {
         location.href = 'board.html';
     }
+
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('정말 로그아웃 하시겠습니까?')) {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
+            alert('로그아웃 되었습니다.');
+            window.location.href = 'index.html';
+        }
+    }
 </script>
 
 <footer>
