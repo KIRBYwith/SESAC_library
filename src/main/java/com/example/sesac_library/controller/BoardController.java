@@ -76,7 +76,7 @@ public class BoardController {
             Board savedBoard = boardService.createBoard(board, file);
 
             // 게시글 작성 시 100포인트 지급
-            user.setPoints(user.getPoints() + 100);
+            user.setPoints(user.getPoints() + 10);
             userRepository.save(user);
 
 
