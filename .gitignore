@@ -2,6 +2,8 @@
 /build/
 /out/
 /target/
+/bin/
+*.class
 
 ### Gradle ###
 .gradle/
@@ -30,3 +32,4 @@ Thumbs.db
 ### Others ###
 node_modules/
 API_Integration_Summary.md
+uploads/
