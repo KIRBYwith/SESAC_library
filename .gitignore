@@ -32,5 +32,4 @@ Thumbs.db
 ### Others ###
 node_modules/
 API_Integration_Summary.md
-src/main/resources/application-local.yml
 uploads/
