@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 보기 - 도서관 시스템</title>
+    <link rel="stylesheet" href="/css/style.css?v=20250118update">
+    <link rel="stylesheet" href="/css/events-footer.css?v=20250118events">
+    <style>
+        body {
+            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--deep-navy) 30%, var(--star-gold) 70%, var(--pale-gold) 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .board-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(255, 179, 217, 0.2);
+            border: 2px solid rgba(255, 179, 217, 0.1);
+        }
+
+        .post-header {
+            border-bottom: 2px solid rgba(255, 179, 217, 0.2);
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .post-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #d63384;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-meta {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .post-content {
+            padding: 1rem 0;
+            min-height: 200px;
+            white-space: pre-line;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-back {
+            background: rgba(255, 179, 217, 0.2);
+            color: #d63384;
+        }
+
+        .btn-back:hover {
+            background: linear-gradient(45deg, #ffb3d9, #ffeb99);
+            color: white;
+        }
+
+        .btn-edit, .btn-save {
+            background: linear-gradient(45deg, #ffe066, #ff99cc);
+            color: #d63384;
+        }
+
+        .btn-edit:hover, .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 179, 217, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(45deg, #ff6b6b, #ff99cc);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 99, 99, 0.3);
+        }
+
+        .btn-cancel {
+            background: #ccc;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #999;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1><a href="index.html" class="logo-link">📖KIRBY 도서관📖</a></h1>
+    <nav>
+        <a href="index.html">홈</a>
+        <a href="signup.html" id="signupBtn">회원가입</a>
+        <a href="books.html">도서목록</a>
+        <a href="board.html">게시판</a>
+        <a href="login.html" id="loginBtn">로그인</a>
+        <a href="mypage.html" id="mypageBtn" style="display: none;">마이페이지</a>
+        <a href="admin.html" id="adminBtn" style="display: none;">관리자</a>
+        <a href="#" id="logoutBtn" onclick="logout()" style="display:none;">로그아웃</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="board-card">
+        <div class="post-header">
+            <div id="categoryDisplay" style="display: inline-block; background: #ffb3d9; color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.85rem; margin-bottom: 0.5rem;"></div>
+            <h2 class="post-title" id="postTitle">게시글 제목</h2>
+            <div class="post-meta">
+                <span id="postAuthor">작성자: -</span>
+                <span id="postDate">날짜: -</span>
+                <span id="postViews">조회수: 0</span>
+            </div>
+        </div>
+
+        <div class="post-content" id="postContent">
+            로딩 중...
+        </div>
+
+        <!-- ✅ 여기에 추가! -->
+        <div id="fileSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid rgba(255, 179, 217, 0.2);">
+            <h4 style="color: #d63384; margin-bottom: 10px;">📎 첨부 파일</h4>
+            <div id="fileContainer"></div>
+        </div>
+
+        <div class="post-actions">
+            <button class="btn btn-back" onclick="goBack()">목록으로</button>
+            <button class="btn btn-edit" id="editBtn" style="display: none;" onclick="enableEditMode()">수정</button>
+            <button class="btn btn-delete" id="deleteBtn" style="display: none;" onclick="deleteBoard()">삭제</button>
+            <button class="btn btn-save" id="saveBtn" style="display: none;" onclick="saveBoard()">저장</button>
+            <button class="btn btn-cancel" id="cancelBtn" style="display: none;" onclick="cancelEdit()">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ✅ state.js 로드
+    const s = document.createElement('script');
+    s.src = '/js/state.js';
+    document.head.appendChild(s);
+
+    let currentBoardId = null;
+    let currentUserId = null;
+    let currentUserName = null;
+    let originalBoard = null;
+
+    // 페이지 로드 시 게시글 조회
+    document.addEventListener('DOMContentLoaded', function() {
+        // ✅ state.js 사용
+        setTimeout(() => {
+            if (typeof State !== 'undefined') {
+                State.checkAuthStatus();
+                const user = State.getCurrentUser();
+
+                if (user) {
+                    currentUserId = user.userId;
+                    currentUserName = user.username;
+                    console.log('로그인 사용자:', currentUserId, currentUserName);
+                }
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            currentBoardId = urlParams.get('id');
+
+            if (currentBoardId) {
+                loadBoardDetail(currentBoardId);
+            } else {
+                alert('잘못된 접근입니다.');
+                location.href = 'board.html';
+            }
+        }, 100);
+    });
+
+    // 게시글 상세 불러오기
+    async function loadBoardDetail(boardId) {
+        try {
+            const response = await fetch(`/api/board/list/${boardId}`, {
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('게시글을 불러올 수 없습니다.');
+            }
+
+            const board = await response.json();
+            originalBoard = board;
+            displayBoard(board);
+        } catch (error) {
+            console.error(error);
+            alert('게시글을 불러오는 중 오류가 발생했습니다.');
+            location.href = 'board.html';
+        }
+    }
+
+    // 게시글 화면에 표시
+    function displayBoard(board) {
+        document.getElementById('categoryDisplay').textContent = board.category;
+        document.getElementById('postTitle').textContent = board.title;
+
+        // 파일 안되는 오류 확인용
+        console.log("게시글 파일 배열:", board.files);
+
+        // ✅ 작성자 이름 표시
+        const authorName = board.userName || '알 수 없음';
+        document.getElementById('postAuthor').textContent = `작성자: ${authorName}`;
+
+        document.getElementById('postDate').textContent = `작성일: ${formatDate(board.createdAt)}`;
+        document.getElementById('postViews').textContent = `조회수: ${board.views}`;
+        document.getElementById('postContent').innerHTML = board.content.replace(/\n/g, '<br>');
+
+        // ✅ 첨부파일 표시
+        if (board.files && board.files.length > 0) {
+            const fileContainer = document.createElement('div');
+            fileContainer.style.marginTop = "20px";
+
+            board.files.forEach(file => {
+                if (file.fileUrl) {
+                    // 이미지 파일이면 미리보기
+                    if (/\.(jpg|jpeg|png|gif)$/i.test(file.fileName)) {
+                        const img = document.createElement('img');
+                        img.src = file.fileUrl;  // DB에 저장된 /files/UUID_filename
+                        img.alt = file.fileName;
+                        img.style.maxWidth = "400px";
+                        img.style.display = "block";
+                        img.style.marginBottom = "10px";
+                        fileContainer.appendChild(img);
+                    }
+                    // 그 외는 다운로드 링크
+                    else {
+                        const link = document.createElement('a');
+                        link.href = file.fileUrl;
+                        link.textContent = `📎 ${file.fileName}`;
+                        link.download = file.fileName;
+                        fileContainer.appendChild(link);
+                        fileContainer.appendChild(document.createElement('br'));
+                    }
+                }
+            });
+
+            document.getElementById('postContent').appendChild(fileContainer);
+        }
+
+
+        // ✅ 수정/삭제 버튼 표시 제어
+        console.log('게시글 userId:', board.userId, '현재 userId:', currentUserId);
+        if (currentUserId && board.userId === currentUserId) {
+            document.getElementById('editBtn').style.display = 'inline-block';
+            document.getElementById('deleteBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+        }
+    }
+
+    // 날짜 포맷팅
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // 수정 모드로 전환
+    function enableEditMode() {
+        const content = document.getElementById('postContent').innerHTML.replace(/<br>/g, '\n');
+
+        document.getElementById('categoryDisplay').innerHTML = `
+            <select id="editCategory" style="padding: 5px; border-radius: 10px; border: 2px solid #ffb3d9;">
+                <option value="notice" ${originalBoard.category === 'notice' ? 'selected' : ''}>공지사항</option>
+                <option value="free" ${originalBoard.category === 'free' ? 'selected' : ''}>자유게시판</option>
+                <option value="review" ${originalBoard.category === 'review' ? 'selected' : ''}>도서리뷰</option>
+            </select>
+        `;
+
+        document.getElementById('postTitle').innerHTML = `
+            <input type="text" id="editTitle" value="${originalBoard.title}" style="width: 100%; padding: 8px; font-size: 1.5rem; border: 2px solid #ffb3d9; border-radius: 10px;">
+        `;
+
+        document.getElementById('postContent').innerHTML = `
+            <textarea id="editContent" style="width: 100%; min-height: 300px; padding: 10px; border: 2px solid #ffb3d9; border-radius: 10px; font-size: 1rem;">${content}</textarea>
+            <input type="file" id="editFile" accept="image/*" style="margin-top: 10px;">
+        `;
+
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('deleteBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'inline-block';
+        document.getElementById('cancelBtn').style.display = 'inline-block';
+    }
+
+    // 수정 취소
+    function cancelEdit() {
+        displayBoard(originalBoard);
+        document.getElementById('editBtn').style.display = 'inline-block';
+        document.getElementById('deleteBtn').style.display = 'inline-block';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+    // 게시글 수정 저장
+    async function saveBoard() {
+        const title = document.getElementById('editTitle').value.trim();
+        const category = document.getElementById('editCategory').value;
+        const content = document.getElementById('editContent').value.trim();
+        const fileInput = document.getElementById('editFile');
+
+        if (!title || !content) {
+            alert('제목과 내용을 입력해주세요.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('userId', currentUserId);
+        formData.append('category', category);
+        formData.append('title', title);
+        formData.append('content', content);
+
+        if (fileInput.files.length > 0) {
+            formData.append('file', fileInput.files[0]);
+        }
+
+        try {
+            const response = await fetch(`/api/board/${currentBoardId}`, {
+                method: 'PUT',
+                body: formData,
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || '수정에 실패했습니다.');
+            }
+
+            alert('게시글이 수정되었습니다.');
+            location.reload();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    }
+
+    // 게시글 삭제
+    async function deleteBoard() {
+        if (!confirm('정말 삭제하시겠습니까?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/board/${currentBoardId}?userId=${currentUserId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || '삭제에 실패했습니다.');
+            }
+
+            alert('게시글이 삭제되었습니다.');
+            location.href = 'board.html';
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    }
+
+    // 목록으로 돌아가기
+    function goBack() {
+        location.href = 'board.html';
+    }
+
+    // 로그아웃 기능
+    function logout() {
+        if (confirm('정말 로그아웃 하시겠습니까?')) {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('user');
+            alert('로그아웃 되었습니다.');
+            window.location.href = 'index.html';
+        }
+    }
+</script>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-main">
+            <div class="footer-section">
+                <h4>📚 KIRBY 도서관</h4>
+                <p>지식과 꿈이 만나는 공간</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 KIRBY 도서관. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

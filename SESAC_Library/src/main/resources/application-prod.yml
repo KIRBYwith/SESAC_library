@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  jpa:
+    show-sql: true # 일부러 켜놓으면 SQL 노출 문제도 시연 가능
+
+    # 파일 업로드 설정 추가
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+      enabled: true
+
+# 파일 저장 경로
+file:
+  upload-dir: ${user.dir}/uploads/board_files
+
+server:
+  port: 8080
+
+# 예: logging 레벨도 과도하게 낮춰서 정보 노출 시연
+logging:
+  level:
+    root: INFO
+    org.apache.coyote.http11.Http11Processor: ERROR
+    org.apache.coyote: ERROR
