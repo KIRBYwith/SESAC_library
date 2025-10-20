@@ -1,0 +1,32 @@
+# SESAC_Library 안의 파일들 무시
+SESAC_Library/build/
+SESAC_Library/bin/
+SESAC_Library/out/
+SESAC_Library/.gradle/
+
+# logs
+SESAC_Library/logs/
+
+# IDE & OS
+SESAC_Library/.idea/
+SESAC_Library/.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# Monitoring data
+monitoring/grafana-data/
+monitoring/loki-data/
+
+# Environment
+*.env
+**/application-local.yml
+# application-secure.yml # 민감정보 있으면 주석 해제
+
+### Others ###
+SESAC_Library/node_modules/
+SESAC_Library/API_Integration_Summary.md
+SESAC_Library/API_DOCUMENTATION.md
+SESAC_Library/uploads/
