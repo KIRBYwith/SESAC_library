@@ -44,17 +44,17 @@ jobs:
             docker network create monitoring-net 2>/dev/null || true
 
             # Git 저장소에서 최신 코드 받기
-            cd ~/SESAC_Project
+            cd ~/SeSAC_Project
             git pull origin develop
 
             # Spring Boot 스택 배포
-            cd ~/SESAC_Project/SESAC_Library
+            cd ~/SeSAC_Project/SESAC_Library
             docker pull nayawgj/kirby-lib:latest
             docker compose down
             docker compose up -d
 
             # Monitoring 스택 배포
-            cd ~/SESAC_Project/monitoring
+            cd ~/SeSAC_Project/monitoring
             docker compose down
             docker compose up -d
 
