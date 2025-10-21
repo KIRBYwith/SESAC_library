@@ -34,10 +34,9 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   level:
     root: INFO
-    com.example.sesac_library: DEBUG  # 애플리케이션 코드의 모든 로그
-    org.springframework.web: DEBUG     # Spring MVC 요청/응답 로그
-    org.springframework.security: DEBUG  # Security 관련 로그 (로그인, 인증)
-    org.hibernate.SQL: DEBUG           # SQL 쿼리 로그
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # SQL 파라미터 값
+    com.example.sesac_library: INFO    # 애플리케이션 코드 (운영 환경에서는 INFO)
+    org.springframework.web: WARN      # Spring MVC (에러/경고만)
+    org.springframework.security: WARN # Security (에러/경고만)
+    org.hibernate.SQL: WARN            # SQL 쿼리 (에러만)
     # org.apache.coyote.http11.Http11Processor: ERROR
     # org.apache.coyote: ERROR
