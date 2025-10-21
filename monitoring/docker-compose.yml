@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config/config.yaml
+    volumes:
+      - ./loki-config.yml:/etc/loki/config/config.yaml
+      - ./loki-data:/loki
+    networks:
+      - monitoring-net
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - ../SESAC_Library/logs/app:/app/logs  # Spring Boot 로그 디렉토리 공유
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring-net
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring-net
+    depends_on:
+      - loki
+
+volumes:
+  grafana-data:
+
+networks:
+  monitoring-net:
+    external: true  # 미리 생성된 네트워크 사용

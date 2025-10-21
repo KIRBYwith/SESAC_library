@@ -2,7 +2,10 @@ version: "3.8"
 
 services:
   app:
-    image: nayawgj/kirby-lib:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nayawgj/kirby-lib:latest  # 빌드 시 이 이름으로 태깅, 배포 시 pull
     container_name: kirby-lib-app
     expose:
       - "8080:8080" # nginx가 내부에서 접근할 포트
@@ -11,8 +14,10 @@ services:
     env_file:
       - .env
     volumes:
-      - ./logs/app:/logs
+      - ./logs/app:/app/logs  # 컨테이너 내부 /app/logs 경로로 통일
       - ./uploads:/app/uploads
+    networks:
+      - monitoring-net  # 모니터링 스택과 네트워크 공유
     restart: always
 
   nginx:
@@ -25,6 +30,12 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./logs/nginx:/var/log/nginx
       # - ./certs:/etc/letsencrypt  # HTTPS 시 추가
+    networks:
+      - monitoring-net
     depends_on:
       - app
     restart: always
+
+networks:
+  monitoring-net:
+    external: true  # 미리 생성된 네트워크 사용

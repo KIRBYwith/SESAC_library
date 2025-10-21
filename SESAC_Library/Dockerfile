@@ -11,8 +11,8 @@ WORKDIR /app
 # 빌더에서 jar 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# 로그 디렉토리 생성
-RUN mkdir -p /logs && chmod 755 /logs
+# 로그 디렉토리 생성 (application-prod.yml의 logs/application.log와 매칭)
+RUN mkdir -p /app/logs && chmod 755 /app/logs
 
 # 포트
 EXPOSE 8080

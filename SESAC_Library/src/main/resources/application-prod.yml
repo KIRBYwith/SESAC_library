@@ -23,7 +23,21 @@ server:
 
 # 예: logging 레벨도 과도하게 낮춰서 정보 노출 시연
 logging:
+  file:
+    name: /app/logs/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   level:
     root: INFO
-    org.apache.coyote.http11.Http11Processor: ERROR
-    org.apache.coyote: ERROR
+    com.example.sesac_library: DEBUG  # 애플리케이션 코드의 모든 로그
+    org.springframework.web: DEBUG     # Spring MVC 요청/응답 로그
+    org.springframework.security: DEBUG  # Security 관련 로그 (로그인, 인증)
+    org.hibernate.SQL: DEBUG           # SQL 쿼리 로그
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # SQL 파라미터 값
+    # org.apache.coyote.http11.Http11Processor: ERROR
+    # org.apache.coyote: ERROR

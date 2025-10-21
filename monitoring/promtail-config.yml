@@ -1,0 +1,45 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: springboot-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: springboot
+          app: sesac_library
+          __path__: /app/logs/*.log
+
+    # 로그 파싱 및 정제 파이프라인
+    pipeline_stages:
+      # 1. 로그 패턴 파싱 (Spring Boot 기본 패턴)
+      - regex:
+          expression: '^(?P<timestamp>\S+ \S+) \[(?P<thread>[^\]]+)\] (?P<level>\S+)\s+(?P<logger>\S+) - (?P<message>.*)'
+
+      # 2. 로그 레벨을 라벨로 추출 (Grafana에서 필터링 용이)
+      - labels:
+          level:
+
+      # 3. DEBUG 로그 제외 (저장 공간 절약)
+      - match:
+          selector: '{job="springboot"}'
+          stages:
+            - drop:
+                expression: '.*\] DEBUG .*'
+                drop_counter_reason: "debug_log_dropped"
+
+      # 4. Health check 같은 반복적인 노이즈 로그 제외
+      - match:
+          selector: '{job="springboot"}'
+          stages:
+            - drop:
+                expression: '.*(actuator/health|/favicon.ico).*'
+                drop_counter_reason: "health_check_dropped"
