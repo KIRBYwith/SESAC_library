@@ -28,7 +28,7 @@ jobs:
     - name: Build and Push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./SESAC_Library  # 루트에서 SESAC_Library 폴더로 경로 수정
         push: true
         tags: nayawgj/kirby-lib:latest
 
@@ -40,8 +40,24 @@ jobs:
         username: ubuntu
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          cd ~/kirby-lib
+          # 네트워크 생성 (없으면 생성, 있으면 무시)
+          docker network create monitoring-net 2>/dev/null || true
+
+          # Spring Boot 스택 배포
+          cd ~/SESAC_Library
           git pull origin develop
           docker pull nayawgj/kirby-lib:latest
           docker compose down
           docker compose up -d
+
+          # Monitoring 스택 배포
+          cd ~/monitoring
+          git pull origin develop
+          docker compose down
+          docker compose up -d
+
+          # 배포 결과 확인
+          echo "=== Container Status ==="
+          docker ps
+          echo "=== Network Status ==="
+          docker network inspect monitoring-net --format '{{range .Containers}}{{.Name}} {{end}}'
