@@ -2,7 +2,7 @@ name: CI/CD - Auto Deploy to Lightsail
 
 on:
   push:
-    branches: ["develop"] # develop 브랜치에 push할 때만 작동
+    branches: ["develop", "vulnerable"] # develop, vulnerable 브랜치에 push할 때 작동
 
 jobs:
   build-and-deploy:
@@ -45,7 +45,9 @@ jobs:
 
             # Git 저장소에서 최신 코드 받기
             cd ~/SeSAC_Project
-            git pull origin develop
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
 
             # Spring Boot 스택 배포
             cd ~/SeSAC_Project/SESAC_Library
