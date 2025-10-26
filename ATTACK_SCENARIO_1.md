@@ -9,10 +9,9 @@
 - **공격자 프로필**: 일반 사용자 (USER 권한)
 - **공격 목표**: 문화상품권 무한 취득
 - **사용되는 취약점**:
-  1. **Broken Access Control** (CWE-284)
-  2. **CSRF** (CWE-352)
-  3. **XSS** (CWE-79) - 선택적
-  4. **Session Fixation** (CWE-384) - 선택적
+  1. **Broken Access Control** (CWE-284) - 관리자 API 권한 체크 누락
+  2. **Stored XSS** (CWE-79) - 게시글에 악성 JavaScript 삽입
+  3. **CSRF Protection 미적용** (CWE-352) - CSRF 토큰 없음 (보조 취약점)
 
 ---
 
