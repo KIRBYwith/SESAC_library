@@ -165,6 +165,72 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "대출 처리되었습니다."));
     }
 
+    /* [취약점] 사용자 포인트 조작 API - 권한 체크 우회 가능 */
+    @PostMapping("/api/users/{userId}/points")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateUserPoints(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Integer> request,
+            HttpSession session) {
+
+        // 취약점 1: 관리자 권한 체크를 주석 처리 (의도적)
+        // if (!isAdmin(session)) {
+        //     return ResponseEntity.status(403).body(Map.of("error", "권한이 없습니다."));
+        // }
+
+        // 취약점 2: 로그인만 확인 (일반 사용자도 접근 가능)
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "로그인이 필요합니다."));
+        }
+
+        Optional<User> targetUserOpt = userRepository.findById(userId);
+        if (targetUserOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다."));
+        }
+
+        User targetUser = targetUserOpt.get();
+        Integer newPoints = request.get("points");
+
+        if (newPoints == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "포인트 값이 필요합니다."));
+        }
+
+        // 취약점 3: 포인트 값 검증 없음 (음수, 과도하게 큰 값 모두 허용)
+        targetUser.setPoints(newPoints);
+        userRepository.save(targetUser);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "포인트가 업데이트되었습니다.");
+        response.put("userId", userId);
+        response.put("newPoints", newPoints);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /* 사용자 목록 조회 API */
+    @GetMapping("/api/users")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAllUsers(HttpSession session) {
+        if (!isAdmin(session)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        List<User> users = userRepository.findAll();
+        List<Map<String, Object>> response = users.stream().map(user -> {
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", user.getUserId());
+            userInfo.put("username", user.getUsername());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("points", user.getPoints());
+            userInfo.put("role", user.getRole().toString());
+            return userInfo;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
     private boolean isAdmin(HttpSession session) {
         String username = (String) session.getAttribute("username");
         if (username == null) {
