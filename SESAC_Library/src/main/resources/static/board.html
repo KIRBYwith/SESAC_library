@@ -148,21 +148,14 @@
             align-items: center;
         }
 
-        .search-type {
+        .search-type-label {
             padding: 0.8rem 1rem;
             border: 2px solid rgba(255, 179, 217, 0.3);
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             color: #d63384;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-type:focus {
-            outline: none;
-            border-color: #ffb3d9;
-            box-shadow: 0 4px 15px rgba(255, 179, 217, 0.2);
+            white-space: nowrap;
         }
 
         .notice-badge {
@@ -437,12 +430,7 @@
             </div>
 
             <div class="search-section">
-                <select class="search-type">
-                    <option value="title">제목</option>
-                    <option value="content">내용</option>
-                    <option value="author">글쓴이</option>
-                    <option value="all">전체</option>
-                </select>
+                <span class="search-type-label">제목 및 내용</span>
                 <input type="text" class="search-input" placeholder="검색어를 입력하세요" id="searchInput">
                 <button class="search-btn" onclick="searchPosts()">검색</button>
             </div>
@@ -551,6 +539,16 @@
             console.error('검색 오류:', error);
             alert('검색 중 오류가 발생했습니다.');
         }
+    }
+
+    // 카테고리 뱃지 생성 함수
+    function getCategoryBadge(category) {
+        if (category === 'notice') {
+            return '<span class="notice-badge">공지</span>';
+        } else if (category === 'review') {
+            return '<span class="notice-badge" style="background: linear-gradient(45deg, #4CAF50, #81C784);">리뷰</span>';
+        }
+        return '';
     }
 
     // 검색 결과 렌더링
