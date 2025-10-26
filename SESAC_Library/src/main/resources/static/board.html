@@ -562,22 +562,22 @@
         }
 
         results.forEach(post => {
-            const tr = document.createElement('tr');
-            tr.className = 'board-row';
-            tr.onclick = () => location.href = `boardView.html?id=${post.boardId}`;
+            const row = document.createElement('tr');
 
             const categoryBadge = getCategoryBadge(post.category);
+            const authorName = post.username || '알 수 없음';
 
-            tr.innerHTML = `
-                <td>${post.boardId}</td>
-                <td class="title-cell">
+            row.innerHTML = `
+                <td class="number">${post.boardId}</td>
+                <td class="title">
                     ${categoryBadge}
-                    <span class="post-title">${post.title}</span>
+                    <a href="boardView.html?id=${post.boardId}">${escapeHtml(post.title)}</a>
                 </td>
-                <td>${post.username || '알 수 없음'}</td>
-                <td>${formatDate(post.createdAt)}</td>
+                <td class="author">${escapeHtml(authorName)}</td>
+                <td class="date">${formatDate(post.createdAt)}</td>
             `;
-            tbody.appendChild(tr);
+
+            tbody.appendChild(row);
         });
     }
 
