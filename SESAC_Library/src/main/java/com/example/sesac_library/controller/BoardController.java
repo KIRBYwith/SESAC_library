@@ -6,6 +6,7 @@ import com.example.sesac_library.entity.User;
 import com.example.sesac_library.repository.UserRepository;
 import com.example.sesac_library.service.BoardService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/board")
@@ -26,6 +28,9 @@ public class BoardController {
 
     private final BoardService boardService;
     private final UserRepository userRepository;
+
+    @Autowired
+    private javax.sql.DataSource dataSource;
 
     public BoardController(BoardService boardService, UserRepository userRepository) {
         this.boardService = boardService;
@@ -195,5 +200,58 @@ public class BoardController {
 
         boardService.deleteBoard(id);
         return ResponseEntity.ok().body("게시글이 삭제되었습니다.");
+    }
+
+    /* [취약점] SQL Injection - 게시글 검색 기능 */
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchBoards(@RequestParam String keyword) {
+        Map<String, Object> response = new HashMap<>();
+        List<Map<String, Object>> results = new ArrayList<>();
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // 🚨 취약점: 사용자 입력을 직접 SQL에 삽입 (SQL Injection 가능)
+            String sql = "SELECT b.board_id, b.title, b.content, b.category, b.created_at, " +
+                        "u.username, u.email, u.phone, u.addr " +
+                        "FROM board b " +
+                        "LEFT JOIN user u ON b.user_id = u.user_id " +
+                        "WHERE b.title LIKE '%" + keyword + "%' " +
+                        "OR b.content LIKE '%" + keyword + "%' " +
+                        "ORDER BY b.board_id DESC";
+
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                Map<String, Object> board = new HashMap<>();
+                board.put("boardId", rs.getLong("board_id"));
+                board.put("title", rs.getString("title"));
+                board.put("content", rs.getString("content"));
+                board.put("category", rs.getString("category"));
+                board.put("createdAt", rs.getTimestamp("created_at"));
+                board.put("username", rs.getString("username"));
+
+                // 취약점: 민감한 개인정보까지 노출
+                board.put("email", rs.getString("email"));
+                board.put("phone", rs.getString("phone"));
+                board.put("addr", rs.getString("addr"));
+
+                results.add(board);
+            }
+
+            response.put("success", true);
+            response.put("keyword", keyword);
+            response.put("results", results);
+            response.put("count", results.size());
+
+        } catch (Exception e) {
+            // 취약점: 상세한 에러 메시지 노출 (SQL 구조 유출)
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            response.put("errorType", e.getClass().getName());
+            response.put("sql_hint", "Check your SQL syntax near: " + keyword);
+        }
+
+        return ResponseEntity.ok(response);
     }
 }
