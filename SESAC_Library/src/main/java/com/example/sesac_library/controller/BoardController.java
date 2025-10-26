@@ -215,7 +215,7 @@ public class BoardController {
             String sql = "SELECT b.board_id, b.title, b.content, b.category, b.created_at, " +
                         "u.username, u.email, u.phone, u.addr " +
                         "FROM board b " +
-                        "LEFT JOIN user u ON b.user_id = u.user_id " +
+                        "LEFT JOIN users u ON b.user_id = u.user_id " +
                         "WHERE b.title LIKE '%" + keyword + "%' " +
                         "OR b.content LIKE '%" + keyword + "%' " +
                         "ORDER BY b.board_id DESC";
